@@ -1,0 +1,29 @@
+{
+  "name": "matchbox-widget",
+  "version": "0.1.0",
+  "description": "Matchbox views",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matchboxjs/matchbox-widget.git"
+  },
+  "keywords": [
+    "matchbox",
+    "view"
+  ],
+  "author": "tunderdomb",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/matchboxjs/matchbox-widget/issues"
+  },
+  "homepage": "https://github.com/matchboxjs/matchbox-widget#readme",
+  "dependencies": {
+    "matchbox-attributes": "matchboxjs/matchbox-attributes",
+    "matchbox-core": "matchboxjs/matchbox-core",
+    "matchbox-delegate": "matchboxjs/matchbox-delegate",
+    "matchbox-util": "matchboxjs/matchbox-util"
+  }
+}
