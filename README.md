@@ -1,2 +1,2 @@
-matchbox-widget
-===============
+matchbox-ui
+===========

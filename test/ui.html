@@ -1,0 +1,469 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+    <title></title>
+</head>
+<body>
+
+<div id="mocha"></div>
+
+<div data-screen>
+    <div data-region="header">
+        <div data-element=""></div>
+    </div>
+    <div data-region="sidebar"></div>
+    <div data-region="main"></div>
+</div>
+
+<script type="text/javascript" src="../matchbox-ui.debug.js"></script>
+<script type="text/javascript" src="../node_modules/mocha/mocha.js"></script>
+<script type="text/javascript" src="../node_modules/chai/chai.js"></script>
+<script type="text/javascript">
+    mocha.setup("bdd")
+</script>
+<script type="text/javascript">
+    !function (ui, assert) {
+        function test (name, fn) {
+            it(name, function (done) {
+                var element = createElement("div", "test")
+                document.body.appendChild(element)
+                fn.call(this, element, done)
+                document.body.removeChild(element)
+            })
+        }
+
+        function createElement (tag, id, className, attributes) {
+            var element = document.createElement(tag)
+            element.id = id || ""
+            element.className = className || ""
+            for (var name in attributes) {
+                element.setAttribute(name, attributes[name])
+            }
+            return element
+        }
+
+        function dispatch (element, type) {
+            element.dispatchEvent(new window.CustomEvent(type, {
+                detail: null,
+                view: window,
+                bubbles: true,
+                cancelable: true
+            }))
+        }
+
+        var View = ui.View
+
+        describe("ui", function () {
+            describe("Event", function () {
+                it("event type", function () {
+                    function handler () {}
+                    var event = new ui.Event("click")
+                    assert.equal(event.type, "click")
+                })
+                it("event type", function () {
+                    function handler () {}
+                    var event = new ui.Event("click", handler)
+                    assert.equal(event.type, "click")
+                    assert.equal(event.handler, handler)
+                })
+                it("event target", function () {
+                    function handler () {}
+                    var event = new ui.Event("click", "test", handler)
+                    assert.equal(event.type, "click")
+                    assert.equal(event.target, "test")
+                    assert.equal(event.handler, handler)
+                })
+                it("multiple event target", function () {
+                    function handler () {}
+                    var targets = ["test1", "test2"]
+                    var event = new ui.Event("click", targets, handler)
+                    assert.equal(event.type, "click")
+                    assert.equal(event.target, targets)
+                    assert.equal(event.handler, handler)
+                })
+                it("captured event", function () {
+                    function handler () {}
+                    var targets = ["test1", "test2"]
+                    var event = new ui.Event("click", targets, false, handler)
+                    assert.equal(event.type, "click")
+                    assert.equal(event.target, targets)
+                    assert.equal(event.capture, false)
+                    assert.equal(event.handler, handler)
+                })
+                it("one time event", function () {
+                    function handler () {}
+                    var targets = ["test1", "test2"]
+                    var event = new ui.Event("click", targets, false, true, handler)
+                    assert.equal(event.type, "click")
+                    assert.equal(event.target, targets)
+                    assert.equal(event.capture, false)
+                    assert.equal(event.once, true)
+                    assert.equal(event.handler, handler)
+                })
+            })
+
+            describe("View", function () {
+                it("no arguments", function () {
+                    var view = new View()
+                    assert.instanceOf(view, View)
+                })
+                test("with element argument", function (element, done) {
+                    var view = new View(element)
+                    assert.instanceOf(view, View)
+                    assert.equal(view.element, element)
+                    done()
+                })
+                test("CustomView", function (element, done) {
+                    var CustomView = View.extend({})
+                    var view = new CustomView(element)
+                    assert.instanceOf(view, View)
+                    assert.instanceOf(view, CustomView)
+                    done()
+                })
+
+                describe("layouts", function () {
+                    test("call test", function (element, done) {
+                        var called = false
+                        var CustomView = View.extend({
+                            layouts: {
+                                "test": function () {
+                                    called = true
+                                }
+                            }
+                        })
+                        var view = new CustomView(element)
+                        assert.equal(view.currentLayout, "")
+                        view.changeLayout("test").then(function () {
+                            assert.equal(view.currentLayout, "test")
+                            assert.isTrue(called)
+                            done()
+                        })
+                        assert.equal(view.currentLayout, "")
+                    })
+                })
+
+                describe("events", function () {
+                    test("simple event", function (element, done) {
+                        var view = new (View.extend({
+                            events: {
+                                test: new ui.Event("click", function () {
+                                    done()
+                                })
+                            }
+                        }))(element)
+                        dispatch(element, "click")
+                    })
+                    test("targeted event", function (element, done) {
+                        var child = createElement("div", "child")
+                        element.appendChild(child)
+                        var view = new (View.extend({
+                            events: {
+                                test: new ui.Event("click", "#child", function (e, arg1) {
+                                    assert.equal(child, arg1)
+                                    done()
+                                })
+                            }
+                        }))(element)
+                        dispatch(child, "click")
+                    })
+                    test("multiple targeted event", function (element, done) {
+                        var child1 = createElement("div", "child1")
+                        var child2 = createElement("div", "child2")
+                        element.appendChild(child1)
+                        child1.appendChild(child2)
+                        var view = new (View.extend({
+                            events: {
+                                test: new ui.Event("click", ["#child1", "#child2"], function (e, arg1, arg2) {
+                                    assert.equal(child1, arg1)
+                                    assert.equal(child2, arg2)
+                                    done()
+                                })
+                            }
+                        }))(element)
+                        dispatch(child2, "click")
+                    })
+                })
+
+                describe("attributes", function () {
+                    describe("no default", function () {
+                        test("boolean", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    boolean: {
+                                        type: "boolean"
+                                    }
+                                }
+                            }))(element)
+                            assert.isFalse(view.boolean)
+                            assert.isFalse(element.hasAttribute("data-boolean"))
+                            done()
+                        })
+                        test("string", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    string: {
+                                        type: "string"
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.string)
+                            assert.isFalse(element.hasAttribute("data-string"))
+                            assert.isNull(element.getAttribute("data-string"))
+                            done()
+                        })
+                        test("number", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    number: {
+                                        type: "number"
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.number)
+                            assert.isFalse(element.hasAttribute("data-number"))
+                            assert.isNull(element.getAttribute("data-number"))
+                            done()
+                        })
+                        test("float", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    float: {
+                                        type: "float"
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.float)
+                            assert.isFalse(element.hasAttribute("data-float"))
+                            assert.isNull(element.getAttribute("data-float"))
+                            done()
+                        })
+                        test("json", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    json: {
+                                        type: "json"
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.json)
+                            assert.isFalse(element.hasAttribute("data-json"))
+                            assert.isNull(element.getAttribute("data-json"))
+                            done()
+                        })
+                    })
+
+                    describe("default", function () {
+                        test("boolean", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    boolean: false
+                                }
+                            }))(element)
+                            assert.isFalse(view.boolean)
+                            assert.isFalse(element.hasAttribute("data-boolean"))
+                            done()
+                        })
+                        test("string", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    string: "test"
+                                }
+                            }))(element)
+                            assert.equal(view.string, "test")
+                            assert.isTrue(element.hasAttribute("data-string"))
+                            assert.equal(element.getAttribute("data-string"), "test")
+                            done()
+                        })
+                        test("number", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    number: 1
+                                }
+                            }))(element)
+                            assert.equal(view.number, 1)
+                            assert.isTrue(element.hasAttribute("data-number"))
+                            assert.equal(element.getAttribute("data-number"), 1)
+                            done()
+                        })
+                        test("float", function (element, done) {
+                            var view = new (View.extend({
+                                attributes: {
+                                    float: 1.1
+                                }
+                            }))(element)
+                            assert.equal(view.float, 1.1)
+                            assert.isTrue(element.hasAttribute("data-float"))
+                            assert.equal(element.getAttribute("data-float"), 1.1)
+                            done()
+                        })
+                        test("json", function (element, done) {
+                            var data = {hey: "ho"}
+                            var expectation = JSON.stringify(data)
+                            var view = new (View.extend({
+                                attributes: {
+                                    json: {
+                                        type: "json",
+                                        default: data
+                                    }
+                                }
+                            }))(element)
+                            assert.equal(JSON.stringify(view.json), expectation)
+                            assert.isTrue(element.hasAttribute("data-json"))
+                            assert.equal(element.getAttribute("data-json"), expectation)
+                            done()
+                        })
+                    })
+                })
+
+                describe("modifiers", function () {
+                    describe("switch type", function () {
+                        test("true default + on + off", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        default: true,
+                                        on: "on",
+                                        off: "off"
+                                    }
+                                }
+                            }))(element)
+                            assert.isTrue(view.modifiers.test)
+                            assert.isTrue(element.classList.contains("on"))
+                            done()
+                        })
+                        test("false default + on + off", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        default: false,
+                                        on: "on",
+                                        off: "off"
+                                    }
+                                }
+                            }))(element)
+                            assert.isFalse(view.modifiers.test)
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isTrue(element.classList.contains("off"))
+                            done()
+                        })
+                        test("true default + on + no off", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        default: true,
+                                        on: "on",
+                                        off: ""
+                                    }
+                                }
+                            }))(element)
+                            assert.isTrue(view.modifiers.test)
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("false default + on + no off", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        default: false,
+                                        on: "on",
+                                        off: ""
+                                    }
+                                }
+                            }))(element)
+                            assert.isFalse(view.modifiers.test)
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("true default + no on + off", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        default: true,
+                                        on: "",
+                                        off: "off"
+                                    }
+                                }
+                            }))(element)
+                            assert.isTrue(view.modifiers.test)
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isTrue(element.classList.contains("off"))
+                            done()
+                        })
+                        test("false default + no on + off", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        default: true,
+                                        on: "",
+                                        off: "off"
+                                    }
+                                }
+                            }))(element)
+                            assert.isTrue(view.modifiers.test)
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isTrue(element.classList.contains("off"))
+                            done()
+                        })
+                    })
+                })
+            })
+
+
+            it("works", function () {
+                var Header = ui.Region.extend({
+                    constructor: function Header(element) {
+                        Header.Super.call(this, element)
+                    }
+                })
+
+                var Sidebar = ui.Region.extend({
+                    layouts: {
+                        horizontal: function (previous) {
+                        },
+                        vertical: function (previous) {
+                        }
+                    },
+                    constructor: function Sidebar(element) {
+                        Sidebar.Super.call(this, element)
+                    }
+                })
+
+                var App = ui.Screen.extend({
+                    regions: {
+                        header: Header,
+                        sidebar: Sidebar,
+                        main: {}
+                    },
+                    constructor: function App() {
+                        App.Super.call(this)
+                        this.header = this.regions.header.construct()
+                        this.header.visible = true
+                        this.sidebar = this.regions.sidebar.construct()
+                        this.main = this.regions.main.node()
+                        this.sidebar.changeLayout("horizontal").then(function () {
+                        })
+                    }
+                })
+
+                var screen = new App()
+                assert.instanceOf(screen.header, Header)
+                assert.instanceOf(screen.sidebar, Sidebar)
+                assert.instanceOf(screen.main, Element)
+            })
+        })
+    }(window.matchboxUi, window.chai.assert)
+</script>
+<script type="text/javascript">
+    mocha.run()
+</script>
+</body>
+</html>
