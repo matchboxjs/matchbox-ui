@@ -56,11 +56,11 @@ var View = module.exports = factory({
         modifier = new Modifier(modifier)
       }
       view._modifiers[name] = modifier
-      define.accessor(view.modifiers, name, function getter () {
-        return modifier.get()
-      }, function setter (value) {
-        modifier.set(view.element, value)
-      })
+      //define.accessor(view.modifiers, name, function getter () {
+      //  return modifier.get()
+      //}, function setter (value) {
+      //  modifier.set(value, view.element, view)
+      //})
     }),
     //modifiers: new PrototypeExtension(function (prototype, name, modifier) {
     //  define.accessor(prototype, name, function getter () {
@@ -92,7 +92,7 @@ var View = module.exports = factory({
     Radio.call(this)
     define.value(this, "_events", {})
     define.value(this, "_modifiers", {})
-    define.value(this, "modifiers", {})
+    //define.value(this, "modifiers", {})
     define.writable.value(this, "_element", null)
     define.writable.value(this, "currentLayout", "")
     View.initialize(this)
@@ -157,6 +157,21 @@ var View = module.exports = factory({
         cancelable: true
       })
       return this.element.dispatchEvent(new window.CustomEvent(type, definition))
+    },
+    setModifier: function (name, value) {
+      if (this._modifiers[name]) {
+        return this._modifiers[name].set(value, this.element, this)
+      }
+    },
+    getModifier: function (name) {
+      if (this._modifiers[name]) {
+        return this._modifiers[name].get()
+      }
+    },
+    removeModifier: function (name) {
+      if (this._modifiers[name]) {
+        return this._modifiers[name].remove(this.element, this)
+      }
     }
   }
 })

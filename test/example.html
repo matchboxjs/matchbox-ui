@@ -318,54 +318,38 @@
 
                 describe("modifiers", function () {
                     describe("switch type", function () {
-                        test("true default + on + off", function (element, done) {
+                        test("no default", function (element, done) {
                             var view = new (View.extend({
                                 modifiers: {
                                     test: {
                                         type: "switch",
-                                        default: true,
                                         on: "on",
                                         off: "off"
                                     }
                                 }
                             }))(element)
-                            assert.isTrue(view.modifiers.test)
-                            assert.isTrue(element.classList.contains("on"))
-                            done()
-                        })
-                        test("false default + on + off", function (element, done) {
-                            var view = new (View.extend({
-                                modifiers: {
-                                    test: {
-                                        type: "switch",
-                                        default: false,
-                                        on: "on",
-                                        off: "off"
-                                    }
-                                }
-                            }))(element)
-                            assert.isFalse(view.modifiers.test)
+                            assert.isNull(view.getModifier("test"))
                             assert.isFalse(element.classList.contains("on"))
-                            assert.isTrue(element.classList.contains("off"))
+                            assert.isFalse(element.classList.contains("off"))
                             done()
                         })
-                        test("true default + on + no off", function (element, done) {
+                        test("default to a defined value", function (element, done) {
                             var view = new (View.extend({
                                 modifiers: {
                                     test: {
                                         type: "switch",
                                         default: true,
                                         on: "on",
-                                        off: ""
+                                        off: "off"
                                     }
                                 }
                             }))(element)
-                            assert.isTrue(view.modifiers.test)
+                            assert.isTrue(view.getModifier("test"))
                             assert.isTrue(element.classList.contains("on"))
                             assert.isFalse(element.classList.contains("off"))
                             done()
                         })
-                        test("false default + on + no off", function (element, done) {
+                        test("default to an invalid value", function (element, done) {
                             var view = new (View.extend({
                                 modifiers: {
                                     test: {
@@ -376,41 +360,204 @@
                                     }
                                 }
                             }))(element)
-                            assert.isFalse(view.modifiers.test)
+                            assert.isFalse(view.getModifier("test"))
                             assert.isFalse(element.classList.contains("on"))
                             assert.isFalse(element.classList.contains("off"))
                             done()
                         })
-                        test("true default + no on + off", function (element, done) {
+                        test("setting to a defined value", function (element, done) {
                             var view = new (View.extend({
                                 modifiers: {
                                     test: {
                                         type: "switch",
-                                        default: true,
-                                        on: "",
+                                        on: "on",
                                         off: "off"
                                     }
                                 }
                             }))(element)
-                            assert.isTrue(view.modifiers.test)
+                            view.setModifier("test", true)
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.setModifier("test", false)
                             assert.isFalse(element.classList.contains("on"))
                             assert.isTrue(element.classList.contains("off"))
                             done()
                         })
-                        test("false default + no on + off", function (element, done) {
+                        test("setting to an invalid value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        on: "",
+                                        off: ""
+                                    }
+                                }
+                            }))(element)
+                            view.setModifier("test", true)
+                            assert.isTrue(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.setModifier("test", false)
+                            assert.isFalse(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("remove valid value", function (element, done) {
                             var view = new (View.extend({
                                 modifiers: {
                                     test: {
                                         type: "switch",
                                         default: true,
-                                        on: "",
+                                        on: "on",
                                         off: "off"
                                     }
                                 }
                             }))(element)
-                            assert.isTrue(view.modifiers.test)
+                            assert.isTrue(view.getModifier("test"))
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.removeModifier("test")
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("remove invalid value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "switch",
+                                        on: "",
+                                        off: ""
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.removeModifier("test")
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                    })
+
+                    describe("enum type", function () {
+                        test("no default", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        values: ["on", "off"]
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("default to a defined value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        default: "on",
+                                        values: ["on", "off"]
+                                    }
+                                }
+                            }))(element)
+                            assert.equal(view.getModifier("test"), "on")
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("default to an invalid value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        default: "off",
+                                        values: ["on", ""]
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("setting to a defined value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        values: ["on", "off"]
+                                    }
+                                }
+                            }))(element)
+                            view.setModifier("test", "on")
+                            assert.equal(view.getModifier("test"), "on")
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.setModifier("test", "off")
+                            assert.equal(view.getModifier("test"), "off")
                             assert.isFalse(element.classList.contains("on"))
                             assert.isTrue(element.classList.contains("off"))
+                            done()
+                        })
+                        test("setting to an invalid value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        values: ["", ""]
+                                    }
+                                }
+                            }))(element)
+                            view.setModifier("test", "on")
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("remove valid value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        default: "on",
+                                        values: ["on", "off"]
+                                    }
+                                }
+                            }))(element)
+                            assert.equal(view.getModifier("test"), "on")
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.removeModifier("test")
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        test("remove invalid value", function (element, done) {
+                            var view = new (View.extend({
+                                modifiers: {
+                                    test: {
+                                        type: "enum",
+                                        values: ["", ""]
+                                    }
+                                }
+                            }))(element)
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            view.removeModifier("test")
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
                             done()
                         })
                     })

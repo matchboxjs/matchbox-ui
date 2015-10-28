@@ -6,16 +6,12 @@ function Modifier (modifier) {
   this.values = []
   this.value = null
   this.onchange = null
-  this.animationDuration = 0
+  this.animationDuration = modifier.animationDuration || 0
   this.timerId = null
   switch (this.type) {
     case "switch":
-      if (modifier.on) {
-        this.values.push(modifier.on)
-      }
-      if (modifier.off) {
-        this.values.push(modifier.off)
-      }
+      this.values.push(modifier.on && typeof modifier.on == "string" ? modifier.on : null)
+      this.values.push(modifier.off && typeof modifier.off == "string" ? modifier.off : null)
       break
     case "enum":
       this.values = modifier.values || []
@@ -34,49 +30,82 @@ Modifier.prototype.get = function () {
 }
 
 Modifier.prototype.set = function (value, element, context) {
+  context = context || element
+
+  var previousValue = this.value
+  var previousClassName = previousValue
+  var newValue = value
+  var newClassName = value
+
+  if (this.type == "switch") {
+    newValue = !!value
+
+    var on = this.values[0]
+    var off = this.values[1]
+
+    previousClassName = previousValue == null
+        ? null
+        : previousValue ? on : off
+    newClassName = newValue ? on : off
+  }
+
+  if (previousValue === newValue || !~this.values.indexOf(newClassName)) {
+    return Promise.resolve()
+  }
+  if (previousClassName && element.classList.contains(previousClassName)) {
+    element.classList.remove(previousClassName)
+  }
+  this.value = newValue
+  element.classList.add(newClassName)
+
+  return callOnChange(this, context, previousValue, newValue)
+}
+
+Modifier.prototype.remove = function (element, context) {
+  context = context || element
+  if (this.value == null) {
+    return Promise.resolve()
+  }
   if (this.timerId) {
     clearTimeout(this.timerId)
     this.timerId = null
   }
 
-  switch (this.type) {
-    case "switch":
-      value = !!value
-      if (this.value === value) {
-        break
-      }
+  var previousValue = this.value
+  var previousClassName = previousValue
 
-      var on = this.values[0]
-      var off = this.values[1]
-      if (value === true) {
-        if (off) element.classList.remove(off)
-        if (on) element.classList.add(on)
-      }
-      else {
-        if (on) element.classList.remove(on)
-        if (off) element.classList.add(off)
-      }
-      this.value = value
-      break
-    case "enum":
-      if (!!~this.values.indexOf(value)) {
-        break
-      }
+  if (this.type == "switch") {
+    var on = this.values[0]
+    var off = this.values[1]
 
-      if (this.value && element.classList.has(this.value)) {
-        element.classList.remove(this.value)
-      }
-      this.value = value
-      element.classList.add(this.value)
-      break
+    previousClassName = previousValue == null
+        ? null
+        : previousValue ? on : off
   }
 
-  if (this.onchange) {
-    context = context || element
-    var delay = this.animationDuration
-    var onchange = this.onchange
-    this.timerId = setTimeout(function () {
-      onchange.call(context)
-    }, delay)
+  if (previousClassName && element.classList.contains(previousClassName)) {
+    element.classList.remove(previousClassName)
   }
+  this.value = null
+
+  return callOnChange(this, context, previousValue, null)
+}
+
+function callOnChange (modifier, context, previousValue, newValue) {
+  return new Promise(function (resolve) {
+    if (modifier.animationDuration) {
+      if (modifier.timerId) {
+        clearTimeout(modifier.timerId)
+        modifier.timerId = null
+      }
+      modifier.timerId = setTimeout(resolve, modifier.animationDuration)
+    }
+    else {
+      resolve()
+    }
+  }).then(function () {
+    if (modifier.onchange) {
+      return modifier.onchange.call(context, previousValue, newValue)
+    }
+  })
 }
