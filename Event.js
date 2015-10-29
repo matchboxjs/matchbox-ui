@@ -1,8 +1,12 @@
-var delegate = require("matchbox-dom/delegate")
+var delegate = require("matchbox-dom/event/delegate")
 
 module.exports = Event
 
 function Event (event, target, capture, once, handler) {
+  if (!(this instanceof Event)) {
+    return new Event(event, target, capture, once, handler)
+  }
+
   if (typeof event == "string") {
     this.type = event
     switch (arguments.length) {

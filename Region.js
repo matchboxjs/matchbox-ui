@@ -1,18 +1,15 @@
-var defaults = require("matchbox-util/object/defaults")
-var InstanceExtension = require("matchbox-factory/InstanceExtension")
-var Selector = require("matchbox-dom/Selector")
+var CacheExtension = require("matchbox-factory/CacheExtension")
 var View = require("./View")
+var Child = require("./Child")
 
 var Region = module.exports = View.extend({
   extensions: {
-    children: new InstanceExtension(function(region, name, selector){
-      selector = new Selector(defaults(selector, {
-        attribute: "data-element",
-        operator: "~",
-        value: name
-      }))
-      selector.element = region.element
-      region.children[name] = selector
+    elements: new CacheExtension(function(prototype, name, child){
+      if (!(child instanceof Child)) {
+        child = new Child(child)
+      }
+      child.attribute = "data-element"
+      return child.contains(child.value || name)
     })
   },
   children: {},
@@ -27,6 +24,12 @@ var Region = module.exports = View.extend({
     Region.initialize(this)
   },
   prototype: {
-    name: ""
+    findElement: function (name) {
+      var child = this.elements[name]
+      if (child) {
+        return child.from(this.element).find()
+      }
+      return null
+    }
   }
 })

@@ -4,6 +4,10 @@ var Modifier = require("./Modifier")
 module.exports = EnumModifier
 
 function EnumModifier (defaultValue, values, animationDuration) {
+  if (!(this instanceof EnumModifier)) {
+    return new EnumModifier(defaultValue, values, animationDuration)
+  }
+
   Modifier.call(this, {
     type: "enum",
     default: defaultValue,

@@ -4,6 +4,10 @@ var Modifier = require("./Modifier")
 module.exports = SwitchModifier
 
 function SwitchModifier (defaultValue, on, off, animationDuration) {
+  if (!(this instanceof SwitchModifier)) {
+    return new SwitchModifier(defaultValue, on, off, animationDuration)
+  }
+
   Modifier.call(this, {
     type: "switch",
     default: defaultValue,

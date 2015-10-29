@@ -1,0 +1,131 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+    <title></title>
+</head>
+<body>
+
+<div id="mocha"></div>
+
+<script type="text/javascript" src="../matchbox-ui.debug.js"></script>
+<script type="text/javascript" src="../node_modules/mocha/mocha.js"></script>
+<script type="text/javascript" src="../node_modules/chai/chai.js"></script>
+<script type="text/javascript">
+    mocha.setup("bdd")
+</script>
+<script type="text/javascript">
+    !function (ui, assert) {
+        function test (name, fn) {
+            it(name, function () {
+                var element = document.createElement("div")
+                element.dataset.screen = ""
+                document.body.appendChild(element)
+                fn.call(this, element)
+                document.body.removeChild(element)
+            })
+        }
+
+        function createRegion (tag, name) {
+            var element = document.createElement(tag)
+            element.dataset.region = name
+            return element
+        }
+
+        var Region = ui.Region
+        var Screen = ui.Screen
+
+        describe("Screen", function () {
+            describe("children", function () {
+                test("bare bone example", function (element) {
+                    var region = createRegion("div", "region")
+                    element.appendChild(region)
+                    var screen = new (Screen.extend({
+                        regions: {
+                            region: new ui.Child()
+                        }
+                    }))(element)
+                    assert.instanceOf(screen.findRegion("region"), Region)
+                    assert.equal(screen.findRegion("region").element, region)
+                })
+                test("nonexistent region", function (element) {
+                    var screen = new (Screen.extend({
+                        regions: {
+                            region: new ui.Child()
+                        }
+                    }))(element)
+                    assert.isNull(screen.findRegion("region"))
+                    assert.isNull(screen.findRegion("asdqwe"))
+                })
+                test("name override", function (element) {
+                    var region = createRegion("div", "other-region")
+                    element.appendChild(region)
+                    var screen = new (Screen.extend({
+                        regions: {
+                            region: new ui.Child("other-region")
+                        }
+                    }))(element)
+                    assert.instanceOf(screen.findRegion("region"), Region)
+                    assert.equal(screen.findRegion("region").element, region)
+                })
+                test("multiple region", function (element) {
+                    var region1 = createRegion("div", "region")
+                    var region2 = createRegion("div", "region")
+                    element.appendChild(region1)
+                    element.appendChild(region2)
+                    var screen = new (Screen.extend({
+                        regions: {
+                            region: new ui.Child({
+                                multiple: true
+                            })
+                        }
+                    }))(element)
+                    assert.isArray(screen.findRegion("region"))
+                    assert.lengthOf(screen.findRegion("region"), 2)
+                    assert.instanceOf(screen.findRegion("region")[0], Region)
+                    assert.instanceOf(screen.findRegion("region")[1], Region)
+                    assert.equal(screen.findRegion("region")[0].element, region1)
+                    assert.equal(screen.findRegion("region")[1].element, region2)
+                })
+                test("with constructor", function (element) {
+                    var region = createRegion("div", "region")
+                    element.appendChild(region)
+                    var CustomRegion = Region.extend({})
+                    var screen = new (Screen.extend({
+                        regions: {
+                            region: new ui.Child(CustomRegion)
+                        }
+                    }))(element)
+                    assert.instanceOf(screen.findRegion("region"), CustomRegion)
+                    assert.equal(screen.findRegion("region").element, region)
+                })
+                test("multiple with constructor", function (element) {
+                    var region1 = createRegion("div", "region")
+                    var region2 = createRegion("div", "region")
+                    element.appendChild(region1)
+                    element.appendChild(region2)
+                    var CustomRegion = Region.extend({})
+                    var screen = new (Screen.extend({
+                        regions: {
+                            region: new ui.Child({
+                                Constructor: CustomRegion,
+                                multiple: true
+                            })
+                        }
+                    }))(element)
+                    assert.isArray(screen.findRegion("region"))
+                    assert.lengthOf(screen.findRegion("region"), 2)
+                    assert.instanceOf(screen.findRegion("region")[0], CustomRegion)
+                    assert.instanceOf(screen.findRegion("region")[1], CustomRegion)
+                    assert.equal(screen.findRegion("region")[0].element, region1)
+                    assert.equal(screen.findRegion("region")[1].element, region2)
+                })
+            })
+        })
+    }(window.matchboxUi, window.chai.assert)
+</script>
+<script type="text/javascript">
+    mocha.run()
+</script>
+</body>
+</html>

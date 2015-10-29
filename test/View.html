@@ -136,68 +136,58 @@
                 })
             })
 
-            describe("attributes", function () {
+            describe("dataset", function () {
                 describe("no default", function () {
                     test("boolean", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
-                                boolean: {
-                                    type: "boolean"
-                                }
+                            dataset: {
+                                boolean: new View.data.Boolean()
                             }
                         }))(element)
-                        assert.isFalse(view.boolean)
+                        assert.isNull(view.getData("boolean"))
                         assert.isFalse(element.hasAttribute("data-boolean"))
                         done()
                     })
                     test("string", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
-                                string: {
-                                    type: "string"
-                                }
+                            dataset: {
+                                string: new View.data.String()
                             }
                         }))(element)
-                        assert.isNull(view.string)
+                        assert.isNull(view.getData("string"))
                         assert.isFalse(element.hasAttribute("data-string"))
                         assert.isNull(element.getAttribute("data-string"))
                         done()
                     })
                     test("number", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
-                                number: {
-                                    type: "number"
-                                }
+                            dataset: {
+                                number: new View.data.Number()
                             }
                         }))(element)
-                        assert.isNull(view.number)
+                        assert.isNull(view.getData("number"))
                         assert.isFalse(element.hasAttribute("data-number"))
                         assert.isNull(element.getAttribute("data-number"))
                         done()
                     })
                     test("float", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
-                                float: {
-                                    type: "float"
-                                }
+                            dataset: {
+                                float: new View.data.Float()
                             }
                         }))(element)
-                        assert.isNull(view.float)
+                        assert.isNull(view.getData("float"))
                         assert.isFalse(element.hasAttribute("data-float"))
                         assert.isNull(element.getAttribute("data-float"))
                         done()
                     })
                     test("json", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
-                                json: {
-                                    type: "json"
-                                }
+                            dataset: {
+                                json: new View.data.JSON()
                             }
                         }))(element)
-                        assert.isNull(view.json)
+                        assert.isNull(view.getData("float"))
                         assert.isFalse(element.hasAttribute("data-json"))
                         assert.isNull(element.getAttribute("data-json"))
                         done()
@@ -207,43 +197,43 @@
                 describe("default", function () {
                     test("boolean", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
+                            dataset: {
                                 boolean: false
                             }
                         }))(element)
-                        assert.isFalse(view.boolean)
-                        assert.isFalse(element.hasAttribute("data-boolean"))
+                        assert.isFalse(view.getData("boolean"))
+                        assert.isTrue(element.hasAttribute("data-boolean"))
                         done()
                     })
                     test("string", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
+                            dataset: {
                                 string: "test"
                             }
                         }))(element)
-                        assert.equal(view.string, "test")
+                        assert.equal(view.getData("string"), "test")
                         assert.isTrue(element.hasAttribute("data-string"))
                         assert.equal(element.getAttribute("data-string"), "test")
                         done()
                     })
                     test("number", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
+                            dataset: {
                                 number: 1
                             }
                         }))(element)
-                        assert.equal(view.number, 1)
+                        assert.equal(view.getData("number"), 1)
                         assert.isTrue(element.hasAttribute("data-number"))
                         assert.equal(element.getAttribute("data-number"), 1)
                         done()
                     })
                     test("float", function (element, done) {
                         var view = new (View.extend({
-                            attributes: {
+                            dataset: {
                                 float: 1.1
                             }
                         }))(element)
-                        assert.equal(view.float, 1.1)
+                        assert.equal(view.getData("float"), 1.1)
                         assert.isTrue(element.hasAttribute("data-float"))
                         assert.equal(element.getAttribute("data-float"), 1.1)
                         done()
@@ -252,14 +242,11 @@
                         var data = {hey: "ho"}
                         var expectation = JSON.stringify(data)
                         var view = new (View.extend({
-                            attributes: {
-                                json: {
-                                    type: "json",
-                                    default: data
-                                }
+                            dataset: {
+                                json: new View.data.JSON("json", data)
                             }
                         }))(element)
-                        assert.equal(JSON.stringify(view.json), expectation)
+                        assert.equal(JSON.stringify(view.getData("json")), expectation)
                         assert.isTrue(element.hasAttribute("data-json"))
                         assert.equal(element.getAttribute("data-json"), expectation)
                         done()

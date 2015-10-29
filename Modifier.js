@@ -1,6 +1,10 @@
 module.exports = Modifier
 
 function Modifier (modifier) {
+  if (!(this instanceof Modifier)) {
+    return new Modifier(modifier)
+  }
+
   this.type = modifier.type
   this.default = modifier.default == null ? null : modifier.default
   this.values = []
@@ -104,7 +108,7 @@ function callOnChange (modifier, context, previousValue, newValue) {
       resolve()
     }
   }).then(function () {
-    if (modifier.onchange) {
+    if (typeof modifier.onchange == "function") {
       return modifier.onchange.call(context, previousValue, newValue)
     }
   })
