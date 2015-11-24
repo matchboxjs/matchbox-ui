@@ -52,6 +52,12 @@
             }))
         }
 
+        function createChild (tag, name) {
+            var element = document.createElement(tag)
+            element.dataset.child = name
+            return element
+        }
+
         var View = ui.View
 
         describe("View", function () {
@@ -141,7 +147,7 @@
                     test("boolean", function (element, done) {
                         var view = new (View.extend({
                             dataset: {
-                                boolean: new View.data.Boolean()
+                                boolean: new ui.data.Boolean()
                             }
                         }))(element)
                         assert.isNull(view.getData("boolean"))
@@ -151,7 +157,7 @@
                     test("string", function (element, done) {
                         var view = new (View.extend({
                             dataset: {
-                                string: new View.data.String()
+                                string: new ui.data.String()
                             }
                         }))(element)
                         assert.isNull(view.getData("string"))
@@ -162,7 +168,7 @@
                     test("number", function (element, done) {
                         var view = new (View.extend({
                             dataset: {
-                                number: new View.data.Number()
+                                number: new ui.data.Number()
                             }
                         }))(element)
                         assert.isNull(view.getData("number"))
@@ -173,7 +179,7 @@
                     test("float", function (element, done) {
                         var view = new (View.extend({
                             dataset: {
-                                float: new View.data.Float()
+                                float: new ui.data.Float()
                             }
                         }))(element)
                         assert.isNull(view.getData("float"))
@@ -184,7 +190,7 @@
                     test("json", function (element, done) {
                         var view = new (View.extend({
                             dataset: {
-                                json: new View.data.JSON()
+                                json: new ui.data.JSON()
                             }
                         }))(element)
                         assert.isNull(view.getData("float"))
@@ -243,7 +249,7 @@
                         var expectation = JSON.stringify(data)
                         var view = new (View.extend({
                             dataset: {
-                                json: new View.data.JSON("json", data)
+                                json: new ui.data.JSON("json", data)
                             }
                         }))(element)
                         assert.equal(JSON.stringify(view.getData("json")), expectation)
@@ -254,29 +260,116 @@
                 })
             })
 
-            describe("modifiers", function () {
-                test("animation delay", function (element, done) {
-                    var view = new (View.extend({
-                        modifiers: {
-                            test: new ui.SwitchModifier(false, "on", "off", 500)
+            describe("children", function () {
+                test("bare bone example", function (element, done) {
+                    var child = createChild("div", "test:child")
+                    element.appendChild(child)
+                    var el = new (View.extend({
+                        children: {
+                            child: new ui.Child()
+                        },
+                        prototype: {
+                            viewName: "test"
                         }
                     }))(element)
-                    view.setModifier("test", true).then(function () {
-                        assert.isTrue(element.classList.contains("on"))
-                        assert.isFalse(element.classList.contains("off"))
-                    }).then(function () {
-                        return view.removeModifier("test")
-                    }).then(function () {
-                        assert.isNull(view.getModifier("test"))
-                        assert.isFalse(element.classList.contains("on"))
-                        assert.isFalse(element.classList.contains("off"))
-                        done()
-                    })
-                    assert.isTrue(view.getModifier("test"))
-                    assert.isTrue(element.classList.contains("on"))
-                    assert.isFalse(element.classList.contains("off"))
+                    assert.equal(el.findChild("child"), child)
+                    done()
                 })
+                test("nonexistent child", function (element, done) {
+                    var el = new (View.extend({
+                        children: {
+                            child: new ui.Child()
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    assert.isNull(el.findChild("child"))
+                    assert.isNull(el.findChild("asdqwe"))
+                    done()
+                })
+                test("name override", function (element, done) {
+                    var child = createChild("div", "test:other-child")
+                    element.appendChild(child)
+                    var el = new (View.extend({
+                        children: {
+                            child: new ui.Child("other-child")
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    assert.equal(el.findChild("child"), child)
+                    done()
+                })
+                test("multiple child", function (element, done) {
+                    var child1 = createChild("div", "test:child")
+                    var child2 = createChild("div", "test:child")
+                    element.appendChild(child1)
+                    element.appendChild(child2)
+                    var el = new (View.extend({
+                        children: {
+                            child: new ui.Child({
+                                multiple: true
+                            })
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    assert.isNotNull(el.findChild("child"))
+                    assert.lengthOf(el.findChild("child"), 2)
+                    assert.equal(el.findChild("child")[0], child1)
+                    assert.equal(el.findChild("child")[1], child2)
+                    done()
+                })
+                test("with constructor", function (element, done) {
+                    var child = createChild("div", "test:child")
+                    element.appendChild(child)
+                    var ChildElement = View.extend({})
+                    var el = new (View.extend({
+                        children: {
+                            child: new ui.Child(ChildElement)
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    assert.instanceOf(el.findChild("child"), ChildElement)
+                    assert.equal(el.findChild("child").element, child)
+                    done()
+                })
+                it("nested children", function () {
+                    var el1 = createElement("div", "", "parent")
+                    var el2 = createElement("div", "", "parent")
+                    var el1child = createChild("div", "test:child")
+                    var el2child = createChild("div", "test:child")
+                    el1.appendChild(el1child)
+                    el2.appendChild(el2child)
+                    el1child.appendChild(el2)
 
+                    var view = new (View.extend({
+                        children: {
+                            child: new ui.Child({
+                                multiple: true
+                            })
+                        },
+                        prototype: {
+                            viewName: "test",
+                            rootSelector: {
+                                attribute: "class",
+                                value: "parent"
+                            }
+                        }
+                    }))(el1)
+
+                    var children = view.findChild("child")
+                    assert.lengthOf(children, 1)
+                    assert.equal(children[0], el1child)
+                })
+            })
+
+            describe("modifiers", function () {
                 describe("switch type", function () {
                     test("no default", function (element, done) {
                         var view = new (View.extend({
@@ -465,6 +558,28 @@
                         assert.isFalse(element.classList.contains("off"))
                         done()
                     })
+                    test("animation delay", function (element, done) {
+                        var view = new (View.extend({
+                            modifiers: {
+                                test: new ui.SwitchModifier(false, "on", "off", 500)
+                            }
+                        }))(element)
+                        view.setModifier("test", true).then(function () {
+                            assert.isTrue(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                        }).then(function () {
+                            return view.removeModifier("test")
+                        }).then(function () {
+                            assert.isNull(view.getModifier("test"))
+                            assert.isFalse(element.classList.contains("on"))
+                            assert.isFalse(element.classList.contains("off"))
+                            done()
+                        })
+                        assert.isTrue(view.getModifier("test"))
+                        assert.isTrue(element.classList.contains("on"))
+                        assert.isFalse(element.classList.contains("off"))
+                    })
+
                 })
             })
         })

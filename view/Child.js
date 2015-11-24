@@ -3,7 +3,10 @@ var Selector = require("matchbox-dom/Selector")
 
 module.exports = Child
 
+Child.DEFAULT_ATTRIBUTE = "data-child"
+
 function Child (child) {
+  child = child || {}
   if (!(this instanceof Child)) {
     return new Child(child)
   }
@@ -18,10 +21,13 @@ function Child (child) {
     default:
       Selector.call(this, child)
   }
+
+  this.attribute = this.attribute || Child.DEFAULT_ATTRIBUTE
+  this.autoselect = child.autoselect == undefined ? false : child.autoselect
 }
 
 inherit(Child, Selector)
 
 Child.prototype.clone = function () {
-  return new Child(this)
+  return new this.constructor(this)
 }

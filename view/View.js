@@ -6,15 +6,14 @@ var InstanceExtension = require("matchbox-factory/InstanceExtension")
 var CacheExtension = require("matchbox-factory/CacheExtension")
 var DomData = require("matchbox-dom/Data")
 var domData = require("matchbox-dom/data")
+var Selector = require("matchbox-dom/Selector")
 var Radio = require("matchbox-radio")
+var Fragment = require("matchbox-dom/Fragment")
 var Event = require("./Event")
 var Modifier = require("./Modifier")
+var Child = require("./Child")
 
 var View = module.exports = factory({
-  'static': {
-    data: domData
-  },
-
   include: [Radio],
 
   extensions: {
@@ -32,8 +31,8 @@ var View = module.exports = factory({
       if (!(data instanceof DomData)) {
         data = domData.create(name, data)
       }
-
       data.name = data.name || name
+
       return data
     }),
     modifiers: new InstanceExtension(function (view, name, modifier) {
@@ -41,6 +40,32 @@ var View = module.exports = factory({
         modifier = new Modifier(modifier)
       }
       view._modifiers[name] = modifier
+    }),
+    children: new CacheExtension(function(prototype, name, child){
+      if (!(child instanceof Selector)) {
+        child = new Child(child)
+      }
+
+      if (prototype.rootSelector) {
+        if (!(prototype.rootSelector instanceof Selector)) {
+          prototype.rootSelector = new Selector(prototype.rootSelector)
+        }
+      }
+      if (prototype.viewName) {
+        if (!(prototype.rootSelector instanceof Selector)) {
+          prototype.rootSelector = new Child(prototype.viewName)
+        }
+        if (child instanceof Child) {
+          return child.contains(child.value || name).prefix(prototype.viewName)
+        }
+      }
+      return child.contains(child.value || name)
+    }),
+    fragments: new CacheExtension(function (prototype, name, fragment) {
+      if (!(fragment instanceof Fragment)) {
+        return new Fragment(fragment)
+      }
+      return fragment
     })
   },
 
@@ -48,6 +73,8 @@ var View = module.exports = factory({
   events: {},
   dataset: {},
   modifiers: {},
+  fragments: {},
+  children: {},
 
   constructor: function View( element ){
     Radio.call(this)
@@ -76,6 +103,8 @@ var View = module.exports = factory({
   },
 
   prototype: {
+    viewName: "",
+    rootSelector: null,
     onElementChange: function (element, previous) {
       var view = this
       forIn(this._events, function (name, event) {
@@ -88,6 +117,12 @@ var View = module.exports = factory({
       forIn(this.dataset, function (name, data) {
         if (!data.has(element) && data.default != null) {
           data.set(element, data.default)
+        }
+      })
+      forIn(this.children, function (name) {
+        var child = view.children[name]
+        if (child && child.autoselect) {
+          view[name] = view.findChild(name)
         }
       })
     },
@@ -160,6 +195,13 @@ var View = module.exports = factory({
       if (this._modifiers[name]) {
         return this._modifiers[name].remove(this.element, this)
       }
+    },
+    findChild: function (name) {
+      var child = this.children[name]
+      if (child) {
+        return child.from(this.element, this.rootSelector).find()
+      }
+      return null
     }
   }
 })

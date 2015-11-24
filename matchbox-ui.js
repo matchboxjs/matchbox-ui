@@ -1,79 +1,17 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.matchboxUi = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var ui = module.exports = {}
+
+ui.data = require("matchbox-dom/data")
+ui.View = require("./view/View")
+ui.Child = require("./view/Child")
+ui.Event = require("./view/Event")
+ui.Modifier = require("./view/Modifier")
+ui.SwitchModifier = require("./modifier/SwitchModifier")
+ui.EnumModifier = require("./modifier/EnumModifier")
+
+},{"./modifier/EnumModifier":2,"./modifier/SwitchModifier":3,"./view/Child":35,"./view/Event":36,"./view/Modifier":37,"./view/View":38,"matchbox-dom/data":12}],2:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
-var Selector = require("matchbox-dom/Selector")
-
-module.exports = Child
-
-function Child (child) {
-  if (!(this instanceof Child)) {
-    return new Child(child)
-  }
-
-  switch (typeof child) {
-    case "function":
-      Selector.call(this, {Constructor: child})
-      break
-    case "string":
-      Selector.call(this, {value: child})
-      break
-    default:
-      Selector.call(this, child)
-  }
-}
-
-inherit(Child, Selector)
-
-Child.prototype.clone = function () {
-  return new Child(this)
-}
-
-},{"matchbox-dom/Selector":13,"matchbox-factory/inherit":31}],2:[function(require,module,exports){
-var CacheExtension = require("matchbox-factory/CacheExtension")
-var Fragment = require("matchbox-dom/Fragment")
-var View = require("./View")
-var Child = require("./Child")
-
-var Element = module.exports = View.extend({
-  extensions: {
-    children: new CacheExtension(function(prototype, name, child){
-      if (!(child instanceof Child)) {
-        child = new Child(child)
-      }
-      child.attribute = "data-child"
-      return child.contains(child.value || name).prefix(prototype.name)
-    }),
-    fragments: new CacheExtension(function (prototype, name, fragment) {
-      if (!(fragment instanceof Fragment)) {
-        return new Fragment(fragment)
-      }
-      return fragment
-    })
-  },
-  children: {},
-  modifiers: {},
-  changeLayout: {},
-  events: {},
-  data: {},
-  fragments: {},
-  constructor: function Element(element) {
-    View.apply(this, arguments)
-    Element.initialize(this)
-  },
-  prototype: {
-    name: "",
-    findChild: function (name) {
-      var child = this.children[name]
-      if (child) {
-        return child.from(this.element).find()
-      }
-      return null
-    }
-  }
-})
-
-},{"./Child":1,"./View":9,"matchbox-dom/Fragment":12,"matchbox-factory/CacheExtension":22}],3:[function(require,module,exports){
-var inherit = require("matchbox-factory/inherit")
-var Modifier = require("./Modifier")
+var Modifier = require("../view/Modifier")
 
 module.exports = EnumModifier
 
@@ -92,283 +30,9 @@ function EnumModifier (defaultValue, values, animationDuration) {
 
 inherit(EnumModifier, Modifier)
 
-},{"./Modifier":5,"matchbox-factory/inherit":31}],4:[function(require,module,exports){
-var delegate = require("matchbox-dom/event/delegate")
-
-module.exports = Event
-
-function Event (event, target, capture, once, handler) {
-  if (!(this instanceof Event)) {
-    return new Event(event, target, capture, once, handler)
-  }
-
-  if (typeof event == "string") {
-    this.type = event
-    switch (arguments.length) {
-      case 2:
-        this.handler = target
-        break
-      case 3:
-        this.target = target
-        this.handler = capture
-        break
-      case 4:
-        this.target = target
-        this.capture = capture
-        this.handler = once
-        break
-      case 5:
-        this.target = target
-        this.capture = capture
-        this.once = once
-        this.handler = handler
-        break
-    }
-    this.transform = null
-  }
-  else {
-    event = event || {}
-    this.type = event.type
-    this.target = event.target
-    this.once = !!event.once
-    this.capture = !!event.capture
-    this.handler = event.handler
-    if (event.transform ) this.transform = event.transform
-  }
-  this.proxy = this.handler
-}
-
-Event.prototype.transform = function () {}
-
-Event.prototype.register = function (element, context) {
-  if (this.target) {
-    this.proxy = delegate({
-      element: element,
-      event: this.type,
-      context: context,
-      transform: this.transform
-    })
-    this.proxy.match(this.target, this.handler)
-  }
-  else {
-    if (this.once) {
-      element.addEventListener(this.type, this.handler, this.capture)
-    }
-    else {
-      element.addEventListener(this.type, this.handler, this.capture)
-    }
-  }
-}
-
-Event.prototype.unRegister = function (element) {
-  if (this.proxy) {
-    element.removeEventListener(this.type, this.proxy, this.capture)
-  }
-  else {
-    element.removeEventListener(this.type, this.handler, this.capture)
-  }
-}
-
-},{"matchbox-dom/event/delegate":20}],5:[function(require,module,exports){
-module.exports = Modifier
-
-function Modifier (modifier) {
-  if (!(this instanceof Modifier)) {
-    return new Modifier(modifier)
-  }
-
-  this.type = modifier.type
-  this.default = modifier.default == null ? null : modifier.default
-  this.values = []
-  this.value = null
-  this.onchange = null
-  this.animationDuration = modifier.animationDuration || 0
-  this.timerId = null
-  switch (this.type) {
-    case "switch":
-      this.values.push(modifier.on && typeof modifier.on == "string" ? modifier.on : null)
-      this.values.push(modifier.off && typeof modifier.off == "string" ? modifier.off : null)
-      break
-    case "enum":
-      this.values = modifier.values || []
-      break
-  }
-}
-
-Modifier.prototype.reset = function (element, context) {
-  if (this.default != null) {
-    this.set(this.default, element, context)
-  }
-}
-
-Modifier.prototype.get = function () {
-  return this.value
-}
-
-Modifier.prototype.set = function (value, element, context) {
-  context = context || element
-
-  var previousValue = this.value
-  var previousClassName = previousValue
-  var newValue = value
-  var newClassName = value
-
-  if (this.type == "switch") {
-    newValue = !!value
-
-    var on = this.values[0]
-    var off = this.values[1]
-
-    previousClassName = previousValue == null
-        ? null
-        : previousValue ? on : off
-    newClassName = newValue ? on : off
-  }
-
-  if (previousValue === newValue || !~this.values.indexOf(newClassName)) {
-    return Promise.resolve()
-  }
-  if (previousClassName && element.classList.contains(previousClassName)) {
-    element.classList.remove(previousClassName)
-  }
-  this.value = newValue
-  element.classList.add(newClassName)
-
-  return callOnChange(this, context, previousValue, newValue)
-}
-
-Modifier.prototype.remove = function (element, context) {
-  context = context || element
-  if (this.value == null) {
-    return Promise.resolve()
-  }
-  if (this.timerId) {
-    clearTimeout(this.timerId)
-    this.timerId = null
-  }
-
-  var previousValue = this.value
-  var previousClassName = previousValue
-
-  if (this.type == "switch") {
-    var on = this.values[0]
-    var off = this.values[1]
-
-    previousClassName = previousValue == null
-        ? null
-        : previousValue ? on : off
-  }
-
-  if (previousClassName && element.classList.contains(previousClassName)) {
-    element.classList.remove(previousClassName)
-  }
-  this.value = null
-
-  return callOnChange(this, context, previousValue, null)
-}
-
-function callOnChange (modifier, context, previousValue, newValue) {
-  return new Promise(function (resolve) {
-    if (modifier.animationDuration) {
-      if (modifier.timerId) {
-        clearTimeout(modifier.timerId)
-        modifier.timerId = null
-      }
-      modifier.timerId = setTimeout(resolve, modifier.animationDuration)
-    }
-    else {
-      resolve()
-    }
-  }).then(function () {
-    if (typeof modifier.onchange == "function") {
-      return modifier.onchange.call(context, previousValue, newValue)
-    }
-  })
-}
-
-},{}],6:[function(require,module,exports){
-var CacheExtension = require("matchbox-factory/CacheExtension")
-var View = require("./View")
-var Child = require("./Child")
-
-var Region = module.exports = View.extend({
-  extensions: {
-    elements: new CacheExtension(function(prototype, name, child){
-      if (!(child instanceof Child)) {
-        child = new Child(child)
-      }
-      child.attribute = "data-element"
-      return child.contains(child.value || name)
-    })
-  },
-  children: {},
-  layouts: {},
-  events: {},
-  data: {
-    visible: false,
-    focused: false
-  },
-  constructor: function Region(element) {
-    View.call(this, element)
-    Region.initialize(this)
-  },
-  prototype: {
-    findElement: function (name) {
-      var child = this.elements[name]
-      if (child) {
-        return child.from(this.element).find()
-      }
-      return null
-    }
-  }
-})
-
-},{"./Child":1,"./View":9,"matchbox-factory/CacheExtension":22}],7:[function(require,module,exports){
+},{"../view/Modifier":37,"matchbox-factory/inherit":24}],3:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
-var CacheExtension = require("matchbox-factory/CacheExtension")
-var Selector = require("matchbox-dom/Selector")
-var View = require("./View")
-var Region = require("./Region")
-var Child = require("./Child")
-
-var Screen = module.exports = View.extend({
-  extensions: {
-    regions: new CacheExtension(function (screen, name, child) {
-      if (!(child instanceof Child)) {
-        child = new Child(child)
-      }
-      child.attribute = "data-region"
-      child.Constructor = child.Constructor || Region
-      return child.contains(child.value || name)
-    })
-  },
-  regions: {},
-  changeLayout: {},
-  events: {},
-  data: {},
-  constructor: function Screen(element) {
-    element = element || document.body
-    if (!element.matches(this.selector.toString())) {
-      element = this.selector.select(element)
-    }
-    View.call(this, element)
-    Screen.initialize(this)
-  },
-  prototype: {
-    selector: new Selector({attribute: "data-screen"}),
-    findRegion: function (name) {
-      var child = this.regions[name]
-      if (child) {
-        return child.from(this.element).find()
-      }
-      return null
-    }
-  }
-})
-
-},{"./Child":1,"./Region":6,"./View":9,"matchbox-dom/Selector":13,"matchbox-factory/CacheExtension":22,"matchbox-factory/inherit":31}],8:[function(require,module,exports){
-var inherit = require("matchbox-factory/inherit")
-var Modifier = require("./Modifier")
+var Modifier = require("../view/Modifier")
 
 module.exports = SwitchModifier
 
@@ -388,190 +52,7 @@ function SwitchModifier (defaultValue, on, off, animationDuration) {
 
 inherit(SwitchModifier, Modifier)
 
-},{"./Modifier":5,"matchbox-factory/inherit":31}],9:[function(require,module,exports){
-var define = require("matchbox-util/object/define")
-var defaults = require("matchbox-util/object/defaults")
-var forIn = require("matchbox-util/object/in")
-var factory = require("matchbox-factory")
-var InstanceExtension = require("matchbox-factory/InstanceExtension")
-var CacheExtension = require("matchbox-factory/CacheExtension")
-var DomData = require("matchbox-dom/Data")
-var domData = require("matchbox-dom/data")
-var Radio = require("matchbox-radio")
-var Event = require("./Event")
-var Modifier = require("./Modifier")
-
-var View = module.exports = factory({
-  'static': {
-    data: domData
-  },
-
-  include: [Radio],
-
-  extensions: {
-    layouts: new CacheExtension(),
-    events: new InstanceExtension(function (view, name, event) {
-      if (!(event instanceof Event)) {
-        event = new Event(event)
-      }
-      if (typeof event.handler == "string" && typeof view[event.handler] == "function") {
-        event.handler = view[event.handler].bind(view)
-      }
-      view._events[name] = event
-    }),
-    dataset: new CacheExtension(function (prototype, name, data) {
-      if (!(data instanceof DomData)) {
-        data = domData.create(name, data)
-      }
-
-      data.name = data.name || name
-      //attribute.defineProperty(prototype, name, function (view) {
-      //  return view.element
-      //})
-      return data
-    }),
-    modifiers: new InstanceExtension(function (view, name, modifier) {
-      if (!(modifier instanceof Modifier)) {
-        modifier = new Modifier(modifier)
-      }
-      view._modifiers[name] = modifier
-    })
-  },
-
-  layouts: {},
-  events: {},
-  dataset: {},
-  modifiers: {},
-
-  constructor: function View( element ){
-    Radio.call(this)
-    define.value(this, "_events", {})
-    define.value(this, "_modifiers", {})
-    define.writable.value(this, "_element", null)
-    define.writable.value(this, "currentLayout", "")
-    View.initialize(this)
-    this.element = element
-  },
-
-  accessor: {
-    element: {
-      get: function () {
-        return this._element
-      },
-      set: function (element) {
-        var previous = this._element
-        if (previous == element) {
-          return
-        }
-        this._element = element
-        this.onElementChange(element, previous)
-      }
-    }
-  },
-
-  prototype: {
-    onElementChange: function (element, previous) {
-      var view = this
-      forIn(this._events, function (name, event) {
-        if (previous) event.unRegister(previous)
-        if (element) event.register(element, view)
-      })
-      forIn(this._modifiers, function (name, modifier) {
-        modifier.reset(element, view)
-      })
-      forIn(this.dataset, function (name, data) {
-        if (!data.has(element) && data.default != null) {
-          data.set(element, data.default)
-        }
-      })
-    },
-    onLayoutChange: function (layout, previous) {},
-    changeLayout: function( layout ){
-      if (this.currentLayout == layout) {
-        return Promise.resolve()
-      }
-
-      var layoutHandler = this.layouts[layout]
-      if (typeof layoutHandler != "function") {
-        return Promise.reject(new Error("Invalid layout handler: " + layout))
-      }
-
-      var view = this
-      var previous = view.currentLayout
-      return Promise.resolve(previous).then(function () {
-        return layoutHandler.call(view, previous)
-      }).then(function () {
-        view.currentLayout = layout
-        view.onLayoutChange(previous, layout)
-      })
-    },
-    dispatch: function (type, detail, def) {
-      var definition = defaults(def, {
-        detail: detail || null,
-        view: window,
-        bubbles: true,
-        cancelable: true
-      })
-      return this.element.dispatchEvent(new window.CustomEvent(type, definition))
-    },
-    getData: function (name) {
-      var data = this.dataset[name]
-      if (data) {
-        return data.get(this.element)
-      }
-      return null
-    },
-    setData: function (name, value, silent) {
-      var data = this.dataset[name]
-      if (data) {
-        return data.set(this.element, value, silent)
-      }
-    },
-    removeData: function (name, silent) {
-      var data = this.dataset[name]
-      if (data) {
-        data.remove(this.element, silent)
-      }
-    },
-    hasData: function (name) {
-      var data = this.dataset[name]
-      if (data) {
-        return data.has(this.element)
-      }
-      return false
-    },
-    setModifier: function (name, value) {
-      if (this._modifiers[name]) {
-        return this._modifiers[name].set(value, this.element, this)
-      }
-    },
-    getModifier: function (name) {
-      if (this._modifiers[name]) {
-        return this._modifiers[name].get()
-      }
-    },
-    removeModifier: function (name) {
-      if (this._modifiers[name]) {
-        return this._modifiers[name].remove(this.element, this)
-      }
-    }
-  }
-})
-
-},{"./Event":4,"./Modifier":5,"matchbox-dom/Data":11,"matchbox-dom/data":19,"matchbox-factory":30,"matchbox-factory/CacheExtension":22,"matchbox-factory/InstanceExtension":25,"matchbox-radio":34,"matchbox-util/object/defaults":37,"matchbox-util/object/define":38,"matchbox-util/object/in":40}],10:[function(require,module,exports){
-var ui = module.exports = {}
-
-ui.Screen = require("./Screen")
-ui.Region = require("./Region")
-ui.Element = require("./Element")
-ui.View = require("./View")
-ui.Child = require("./Child")
-ui.Event = require("./Event")
-ui.Modifier = require("./Modifier")
-ui.SwitchModifier = require("./SwitchModifier")
-ui.EnumModifier = require("./EnumModifier")
-
-},{"./Child":1,"./Element":2,"./EnumModifier":3,"./Event":4,"./Modifier":5,"./Region":6,"./Screen":7,"./SwitchModifier":8,"./View":9}],11:[function(require,module,exports){
+},{"../view/Modifier":37,"matchbox-factory/inherit":24}],4:[function(require,module,exports){
 module.exports = DomData
 
 function DomData (name, defaultValue, onChange) {
@@ -657,7 +138,7 @@ DomData.prototype.remove = function (element, context, silent) {
 }
 
 
-},{}],12:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = Fragment
 
 function Fragment (fragment) {
@@ -719,7 +200,7 @@ Fragment.prototype.render = function (context, options) {
   })
 }
 
-},{}],13:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = Selector
 
 Selector.DEFAULT_NEST_SEPARATOR = ":"
@@ -732,12 +213,26 @@ function Selector (selector) {
   this.extra = selector.extra || ""
 
   this.element = selector.element || null
+  this.unwantedParentSelector = selector.unwantedParentSelector || null
 
   this.Constructor = selector.Constructor || null
   this.instantiate = selector.instantiate || null
   this.multiple = selector.multiple != null ? !!selector.multiple : false
 
   this.matcher = selector.matcher || null
+}
+
+function parentFilter (unMatchSelector, realParent) {
+  return function isUnwantedChild(el) {
+    var parent = el.parentNode
+    while (parent && parent != realParent) {
+      if (parent.matches(unMatchSelector)) {
+        return false
+      }
+      parent = parent.parentNode
+    }
+    return true
+  }
 }
 
 Selector.prototype.clone = function () {
@@ -778,14 +273,23 @@ Selector.prototype.nest = function (post, separator) {
   return s
 }
 
-Selector.prototype.from = function (element) {
+Selector.prototype.from = function (element, except) {
   var s = this.clone()
   s.element = element
+  if (except) {
+    s.unwantedParentSelector = except.toString()
+  }
   return s
 }
 
 Selector.prototype.select = function (element, transform) {
   var result = element.querySelector(this.toString())
+  if (result && this.unwantedParentSelector && this.element) {
+    var isWantedChild = parentFilter(this.unwantedParentSelector, this.element)
+    if (!isWantedChild(result)) {
+      return null
+    }
+  }
   return result
       ? transform ? transform(result) : result
       : null
@@ -793,6 +297,9 @@ Selector.prototype.select = function (element, transform) {
 
 Selector.prototype.selectAll = function (element, transform) {
   var result = element.querySelectorAll(this.toString())
+  if (this.unwantedParentSelector && this.element) {
+    result = [].filter.call(result, parentFilter(this.unwantedParentSelector, this.element))
+  }
   return transform ? [].map.call(result, transform) : [].slice.call(result)
 }
 
@@ -858,7 +365,7 @@ Selector.prototype.toString = function () {
   return string
 }
 
-},{}],14:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -884,7 +391,7 @@ BooleanData.prototype.stringify = function (value) {
   return value ? "true" : "false"
 }
 
-},{"../Data":11,"matchbox-factory/inherit":31}],15:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":24}],8:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -910,7 +417,7 @@ FloatData.prototype.stringify = function (value) {
   return ""+value
 }
 
-},{"../Data":11,"matchbox-factory/inherit":31}],16:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":24}],9:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -936,7 +443,7 @@ JSONData.prototype.stringify = function (value) {
   return JSON.stringify(value)
 }
 
-},{"../Data":11,"matchbox-factory/inherit":31}],17:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":24}],10:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -962,7 +469,7 @@ NumberData.prototype.stringify = function (value) {
   return ""+value
 }
 
-},{"../Data":11,"matchbox-factory/inherit":31}],18:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":24}],11:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -988,7 +495,7 @@ StringData.prototype.stringify = function (value) {
   return value ? ""+value : ""
 }
 
-},{"../Data":11,"matchbox-factory/inherit":31}],19:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":24}],12:[function(require,module,exports){
 var data = module.exports = {}
 
 data.Boolean = require("./BooleanData")
@@ -1020,7 +527,7 @@ data.create = function (name, value, onChange) {
   }
 }
 
-},{"./BooleanData":14,"./FloatData":15,"./JSONData":16,"./NumberData":17,"./StringData":18}],20:[function(require,module,exports){
+},{"./BooleanData":7,"./FloatData":8,"./JSONData":9,"./NumberData":10,"./StringData":11}],13:[function(require,module,exports){
 var Selector = require("../Selector")
 
 /**
@@ -1157,7 +664,7 @@ function findParent( selector, el, e ){
   return null
 }
 
-},{"../Selector":13}],21:[function(require,module,exports){
+},{"../Selector":6}],14:[function(require,module,exports){
 var merge = require("matchbox-util/object/merge")
 var forIn = require("matchbox-util/object/in")
 var Extension = require("./Extension")
@@ -1265,7 +772,7 @@ Blueprint.prototype.get = function( name, defaultValue ){
   else return defaultValue
 }
 
-},{"./Extension":23,"matchbox-util/object/in":40,"matchbox-util/object/merge":41}],22:[function(require,module,exports){
+},{"./Extension":16,"matchbox-util/object/in":33,"matchbox-util/object/merge":34}],15:[function(require,module,exports){
 var inherit = require("./inherit")
 var Extension = require("./Extension")
 
@@ -1281,7 +788,7 @@ function CacheExtension (initialize) {
 
 inherit(CacheExtension, Extension)
 
-},{"./Extension":23,"./inherit":31}],23:[function(require,module,exports){
+},{"./Extension":16,"./inherit":24}],16:[function(require,module,exports){
 module.exports = Extension
 
 function Extension(extension){
@@ -1292,7 +799,7 @@ function Extension(extension){
   this.initialize = extension.initialize || null
 }
 
-},{}],24:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var define = require("matchbox-util/object/define")
 var extendObject = require("matchbox-util/object/extend")
 var Blueprint = require("./Blueprint")
@@ -1415,7 +922,7 @@ Factory.prototype.findFactory = function( Constructor ){
   return ret
 }
 
-},{"./Blueprint":21,"./augment":27,"./extend":28,"./include":29,"./inherit":31,"matchbox-util/object/define":38,"matchbox-util/object/extend":39}],25:[function(require,module,exports){
+},{"./Blueprint":14,"./augment":20,"./extend":21,"./include":22,"./inherit":24,"matchbox-util/object/define":31,"matchbox-util/object/extend":32}],18:[function(require,module,exports){
 var inherit = require("./inherit")
 var Extension = require("./Extension")
 
@@ -1431,7 +938,7 @@ function InstanceExtension (initialize) {
 
 inherit(InstanceExtension, Extension)
 
-},{"./Extension":23,"./inherit":31}],26:[function(require,module,exports){
+},{"./Extension":16,"./inherit":24}],19:[function(require,module,exports){
 var inherit = require("./inherit")
 var Extension = require("./Extension")
 
@@ -1447,7 +954,7 @@ function PrototypeExtension (initialize) {
 
 inherit(PrototypeExtension, Extension)
 
-},{"./Extension":23,"./inherit":31}],27:[function(require,module,exports){
+},{"./Extension":16,"./inherit":24}],20:[function(require,module,exports){
 module.exports = function augment (Class, mixin) {
   if (Array.isArray(mixin)) {
     mixin.forEach(function (mixin) {
@@ -1465,7 +972,7 @@ module.exports = function augment (Class, mixin) {
   return Class
 }
 
-},{}],28:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = function extend (Class, prototype) {
   Object.getOwnPropertyNames(prototype).forEach(function (name) {
     if (name !== "constructor" ) {
@@ -1477,7 +984,7 @@ module.exports = function extend (Class, prototype) {
   return Class
 }
 
-},{}],29:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var extend = require("./extend")
 
 module.exports = function include (Class, Other) {
@@ -1503,7 +1010,7 @@ module.exports = function include (Class, Other) {
   return Class
 }
 
-},{"./extend":28}],30:[function(require,module,exports){
+},{"./extend":21}],23:[function(require,module,exports){
 var Factory = require("./Factory")
 
 module.exports = factory
@@ -1516,7 +1023,7 @@ function factory( blueprint ){
   return new Factory(blueprint).assemble()
 }
 
-},{"./CacheExtension":22,"./Factory":24,"./InstanceExtension":25,"./PrototypeExtension":26}],31:[function(require,module,exports){
+},{"./CacheExtension":15,"./Factory":17,"./InstanceExtension":18,"./PrototypeExtension":19}],24:[function(require,module,exports){
 module.exports = function inherit (Class, Base) {
   Class.prototype = Object.create(Base.prototype)
   Class.prototype.constructor = Class
@@ -1524,7 +1031,7 @@ module.exports = function inherit (Class, Base) {
   return Class
 }
 
-},{}],32:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = Channel
 
 function Channel( name ){
@@ -1595,7 +1102,7 @@ Channel.prototype.empty = function(){
   return this
 }
 
-},{}],33:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var Channel = require("./Channel")
 
 module.exports = Radio
@@ -1694,14 +1201,14 @@ Radio.prototype.emptyChannel = function( channel ){
   return this
 }
 
-},{"./Channel":32}],34:[function(require,module,exports){
+},{"./Channel":25}],27:[function(require,module,exports){
 var Radio = require("./Radio")
 var Channel = require("./Channel")
 
 module.exports = Radio
 module.exports.Channel = Channel
 
-},{"./Channel":32,"./Radio":33}],35:[function(require,module,exports){
+},{"./Channel":25,"./Radio":26}],28:[function(require,module,exports){
 module.exports = Descriptor
 
 var _writable = "_writable"
@@ -1793,14 +1300,14 @@ Descriptor.prototype = {
   }
 }
 
-},{}],36:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var extend = require("./extend")
 
 module.exports = function (obj) {
   return extend({}, obj)
 }
 
-},{"./extend":39}],37:[function(require,module,exports){
+},{"./extend":32}],30:[function(require,module,exports){
 var copy = require("./copy")
 
 module.exports = function defaults (options, defaults) {
@@ -1819,12 +1326,12 @@ module.exports = function defaults (options, defaults) {
   return obj
 }
 
-},{"./copy":36}],38:[function(require,module,exports){
+},{"./copy":29}],31:[function(require,module,exports){
 var Descriptor = require("./Descriptor")
 
 module.exports = new Descriptor()
 
-},{"./Descriptor":35}],39:[function(require,module,exports){
+},{"./Descriptor":28}],32:[function(require,module,exports){
 module.exports = function extend( obj, extension ){
   for( var name in extension ){
     if( extension.hasOwnProperty(name) ) obj[name] = extension[name]
@@ -1832,7 +1339,7 @@ module.exports = function extend( obj, extension ){
   return obj
 }
 
-},{}],40:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports = function( obj, callback ){
   for( var prop in obj ){
     if( obj.hasOwnProperty(prop) ){
@@ -1842,12 +1349,450 @@ module.exports = function( obj, callback ){
   return obj
 }
 
-},{}],41:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var extend = require("./extend")
 
 module.exports = function( obj, extension ){
   return extend(extend({}, obj), extension)
 }
 
-},{"./extend":39}]},{},[10])(10)
+},{"./extend":32}],35:[function(require,module,exports){
+var inherit = require("matchbox-factory/inherit")
+var Selector = require("matchbox-dom/Selector")
+
+module.exports = Child
+
+Child.DEFAULT_ATTRIBUTE = "data-child"
+
+function Child (child) {
+  child = child || {}
+  if (!(this instanceof Child)) {
+    return new Child(child)
+  }
+
+  switch (typeof child) {
+    case "function":
+      Selector.call(this, {Constructor: child})
+      break
+    case "string":
+      Selector.call(this, {value: child})
+      break
+    default:
+      Selector.call(this, child)
+  }
+
+  this.attribute = this.attribute || Child.DEFAULT_ATTRIBUTE
+  this.autoselect = child.autoselect == undefined ? false : child.autoselect
+}
+
+inherit(Child, Selector)
+
+Child.prototype.clone = function () {
+  return new this.constructor(this)
+}
+
+},{"matchbox-dom/Selector":6,"matchbox-factory/inherit":24}],36:[function(require,module,exports){
+var delegate = require("matchbox-dom/event/delegate")
+
+module.exports = Event
+
+function Event (event, target, capture, once, handler) {
+  if (!(this instanceof Event)) {
+    return new Event(event, target, capture, once, handler)
+  }
+
+  if (typeof event == "string") {
+    this.type = event
+    switch (arguments.length) {
+      case 2:
+        this.handler = target
+        break
+      case 3:
+        this.target = target
+        this.handler = capture
+        break
+      case 4:
+        this.target = target
+        this.capture = capture
+        this.handler = once
+        break
+      case 5:
+        this.target = target
+        this.capture = capture
+        this.once = once
+        this.handler = handler
+        break
+    }
+    this.transform = null
+  }
+  else {
+    event = event || {}
+    this.type = event.type
+    this.target = event.target
+    this.once = !!event.once
+    this.capture = !!event.capture
+    this.handler = event.handler
+    if (event.transform ) this.transform = event.transform
+  }
+  this.proxy = this.handler
+}
+
+Event.prototype.transform = function () {}
+
+Event.prototype.register = function (element, context) {
+  if (this.target) {
+    this.proxy = delegate({
+      element: element,
+      event: this.type,
+      context: context,
+      transform: this.transform
+    })
+    this.proxy.match(this.target, this.handler)
+  }
+  else {
+    if (this.once) {
+      element.addEventListener(this.type, this.handler, this.capture)
+    }
+    else {
+      element.addEventListener(this.type, this.handler, this.capture)
+    }
+  }
+}
+
+Event.prototype.unRegister = function (element) {
+  if (this.proxy) {
+    element.removeEventListener(this.type, this.proxy, this.capture)
+  }
+  else {
+    element.removeEventListener(this.type, this.handler, this.capture)
+  }
+}
+
+},{"matchbox-dom/event/delegate":13}],37:[function(require,module,exports){
+module.exports = Modifier
+
+function Modifier (modifier) {
+  if (!(this instanceof Modifier)) {
+    return new Modifier(modifier)
+  }
+
+  this.type = modifier.type
+  this.default = modifier.default == null ? null : modifier.default
+  this.values = []
+  this.value = null
+  this.onchange = null
+  this.animationDuration = modifier.animationDuration || 0
+  this.timerId = null
+  switch (this.type) {
+    case "switch":
+      this.values.push(modifier.on && typeof modifier.on == "string" ? modifier.on : null)
+      this.values.push(modifier.off && typeof modifier.off == "string" ? modifier.off : null)
+      break
+    case "enum":
+      this.values = modifier.values || []
+      break
+  }
+}
+
+Modifier.prototype.reset = function (element, context) {
+  if (this.default != null) {
+    this.set(this.default, element, context)
+  }
+}
+
+Modifier.prototype.get = function () {
+  return this.value
+}
+
+Modifier.prototype.set = function (value, element, context) {
+  context = context || element
+
+  var previousValue = this.value
+  var previousClassName = previousValue
+  var newValue = value
+  var newClassName = value
+
+  if (this.type == "switch") {
+    newValue = !!value
+
+    var on = this.values[0]
+    var off = this.values[1]
+
+    previousClassName = previousValue == null
+        ? null
+        : previousValue ? on : off
+    newClassName = newValue ? on : off
+  }
+
+  if (previousValue === newValue || !~this.values.indexOf(newClassName)) {
+    return Promise.resolve()
+  }
+  if (previousClassName && element.classList.contains(previousClassName)) {
+    element.classList.remove(previousClassName)
+  }
+  this.value = newValue
+  element.classList.add(newClassName)
+
+  return callOnChange(this, context, previousValue, newValue)
+}
+
+Modifier.prototype.remove = function (element, context) {
+  context = context || element
+  if (this.value == null) {
+    return Promise.resolve()
+  }
+  if (this.timerId) {
+    clearTimeout(this.timerId)
+    this.timerId = null
+  }
+
+  var previousValue = this.value
+  var previousClassName = previousValue
+
+  if (this.type == "switch") {
+    var on = this.values[0]
+    var off = this.values[1]
+
+    previousClassName = previousValue == null
+        ? null
+        : previousValue ? on : off
+  }
+
+  if (previousClassName && element.classList.contains(previousClassName)) {
+    element.classList.remove(previousClassName)
+  }
+  this.value = null
+
+  return callOnChange(this, context, previousValue, null)
+}
+
+function callOnChange (modifier, context, previousValue, newValue) {
+  return new Promise(function (resolve) {
+    if (modifier.animationDuration) {
+      if (modifier.timerId) {
+        clearTimeout(modifier.timerId)
+        modifier.timerId = null
+      }
+      modifier.timerId = setTimeout(resolve, modifier.animationDuration)
+    }
+    else {
+      resolve()
+    }
+  }).then(function () {
+    if (typeof modifier.onchange == "function") {
+      return modifier.onchange.call(context, previousValue, newValue)
+    }
+  })
+}
+
+},{}],38:[function(require,module,exports){
+var define = require("matchbox-util/object/define")
+var defaults = require("matchbox-util/object/defaults")
+var forIn = require("matchbox-util/object/in")
+var factory = require("matchbox-factory")
+var InstanceExtension = require("matchbox-factory/InstanceExtension")
+var CacheExtension = require("matchbox-factory/CacheExtension")
+var DomData = require("matchbox-dom/Data")
+var domData = require("matchbox-dom/data")
+var Selector = require("matchbox-dom/Selector")
+var Radio = require("matchbox-radio")
+var Fragment = require("matchbox-dom/Fragment")
+var Event = require("./Event")
+var Modifier = require("./Modifier")
+var Child = require("./Child")
+
+var View = module.exports = factory({
+  include: [Radio],
+
+  extensions: {
+    layouts: new CacheExtension(),
+    events: new InstanceExtension(function (view, name, event) {
+      if (!(event instanceof Event)) {
+        event = new Event(event)
+      }
+      if (typeof event.handler == "string" && typeof view[event.handler] == "function") {
+        event.handler = view[event.handler].bind(view)
+      }
+      view._events[name] = event
+    }),
+    dataset: new CacheExtension(function (prototype, name, data) {
+      if (!(data instanceof DomData)) {
+        data = domData.create(name, data)
+      }
+
+      data.name = data.name || name
+      return data
+    }),
+    modifiers: new InstanceExtension(function (view, name, modifier) {
+      if (!(modifier instanceof Modifier)) {
+        modifier = new Modifier(modifier)
+      }
+      view._modifiers[name] = modifier
+    }),
+    children: new CacheExtension(function(prototype, name, child){
+      if (!(child instanceof Selector)) {
+        child = new Child(child)
+      }
+
+      if (prototype.rootSelector) {
+        if (!(prototype.rootSelector instanceof Selector)) {
+          prototype.rootSelector = new Selector(prototype.rootSelector)
+        }
+      }
+      if (prototype.viewName) {
+        if (!(prototype.rootSelector instanceof Selector)) {
+          prototype.rootSelector = new Child(prototype.viewName)
+        }
+        if (child instanceof Child) {
+          return child.contains(child.value || name).prefix(prototype.viewName)
+        }
+      }
+      return child.contains(child.value || name)
+    }),
+    fragments: new CacheExtension(function (prototype, name, fragment) {
+      if (!(fragment instanceof Fragment)) {
+        return new Fragment(fragment)
+      }
+      return fragment
+    })
+  },
+
+  layouts: {},
+  events: {},
+  dataset: {},
+  modifiers: {},
+  fragments: {},
+  children: {},
+
+  constructor: function View( element ){
+    Radio.call(this)
+    define.value(this, "_events", {})
+    define.value(this, "_modifiers", {})
+    define.writable.value(this, "_element", null)
+    define.writable.value(this, "currentLayout", "")
+    View.initialize(this)
+    this.element = element
+  },
+
+  accessor: {
+    element: {
+      get: function () {
+        return this._element
+      },
+      set: function (element) {
+        var previous = this._element
+        if (previous == element) {
+          return
+        }
+        this._element = element
+        this.onElementChange(element, previous)
+      }
+    }
+  },
+
+  prototype: {
+    viewName: "",
+    rootSelector: null,
+    onElementChange: function (element, previous) {
+      var view = this
+      forIn(this._events, function (name, event) {
+        if (previous) event.unRegister(previous)
+        if (element) event.register(element, view)
+      })
+      forIn(this._modifiers, function (name, modifier) {
+        modifier.reset(element, view)
+      })
+      forIn(this.dataset, function (name, data) {
+        if (!data.has(element) && data.default != null) {
+          data.set(element, data.default)
+        }
+      })
+      forIn(this.children, function (name, data) {
+        var child = view.children[name]
+        if (child && child.autoselect) {
+          view[name] = view.findChild(name)
+        }
+      })
+    },
+    onLayoutChange: function (layout, previous) {},
+    changeLayout: function( layout ){
+      if (this.currentLayout == layout) {
+        return Promise.resolve()
+      }
+
+      var layoutHandler = this.layouts[layout]
+      if (typeof layoutHandler != "function") {
+        return Promise.reject(new Error("Invalid layout handler: " + layout))
+      }
+
+      var view = this
+      var previous = view.currentLayout
+      return Promise.resolve(previous).then(function () {
+        return layoutHandler.call(view, previous)
+      }).then(function () {
+        view.currentLayout = layout
+        view.onLayoutChange(previous, layout)
+      })
+    },
+    dispatch: function (type, detail, def) {
+      var definition = defaults(def, {
+        detail: detail || null,
+        view: window,
+        bubbles: true,
+        cancelable: true
+      })
+      return this.element.dispatchEvent(new window.CustomEvent(type, definition))
+    },
+    getData: function (name) {
+      var data = this.dataset[name]
+      if (data) {
+        return data.get(this.element)
+      }
+      return null
+    },
+    setData: function (name, value, silent) {
+      var data = this.dataset[name]
+      if (data) {
+        return data.set(this.element, value, silent)
+      }
+    },
+    removeData: function (name, silent) {
+      var data = this.dataset[name]
+      if (data) {
+        data.remove(this.element, silent)
+      }
+    },
+    hasData: function (name) {
+      var data = this.dataset[name]
+      if (data) {
+        return data.has(this.element)
+      }
+      return false
+    },
+    setModifier: function (name, value) {
+      if (this._modifiers[name]) {
+        return this._modifiers[name].set(value, this.element, this)
+      }
+    },
+    getModifier: function (name) {
+      if (this._modifiers[name]) {
+        return this._modifiers[name].get()
+      }
+    },
+    removeModifier: function (name) {
+      if (this._modifiers[name]) {
+        return this._modifiers[name].remove(this.element, this)
+      }
+    },
+    findChild: function (name) {
+      var child = this.children[name]
+      if (child) {
+        return child.from(this.element, this.rootSelector).find()
+      }
+      return null
+    }
+  }
+})
+
+},{"./Child":35,"./Event":36,"./Modifier":37,"matchbox-dom/Data":4,"matchbox-dom/Fragment":5,"matchbox-dom/Selector":6,"matchbox-dom/data":12,"matchbox-factory":23,"matchbox-factory/CacheExtension":15,"matchbox-factory/InstanceExtension":18,"matchbox-radio":27,"matchbox-util/object/defaults":30,"matchbox-util/object/define":31,"matchbox-util/object/in":33}]},{},[1])(1)
 });
