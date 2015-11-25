@@ -1362,7 +1362,7 @@ var Selector = require("matchbox-dom/Selector")
 
 module.exports = Child
 
-Child.DEFAULT_ATTRIBUTE = "data-child"
+Child.DEFAULT_ATTRIBUTE = "data-view"
 
 function Child (child) {
   child = child || {}
@@ -1619,8 +1619,8 @@ var View = module.exports = factory({
       if (!(data instanceof DomData)) {
         data = domData.create(name, data)
       }
-
       data.name = data.name || name
+
       return data
     }),
     modifiers: new InstanceExtension(function (view, name, modifier) {
@@ -1634,15 +1634,7 @@ var View = module.exports = factory({
         child = new Child(child)
       }
 
-      if (prototype.rootSelector) {
-        if (!(prototype.rootSelector instanceof Selector)) {
-          prototype.rootSelector = new Selector(prototype.rootSelector)
-        }
-      }
       if (prototype.viewName) {
-        if (!(prototype.rootSelector instanceof Selector)) {
-          prototype.rootSelector = new Child(prototype.viewName)
-        }
         if (child instanceof Child) {
           return child.contains(child.value || name).prefix(prototype.viewName)
         }
@@ -1687,12 +1679,18 @@ var View = module.exports = factory({
         this._element = element
         this.onElementChange(element, previous)
       }
+    },
+    elementSelector: {
+      get: function () {
+        if (this.viewName) {
+          return new Child(this.viewName)
+        }
+      }
     }
   },
 
   prototype: {
     viewName: "",
-    rootSelector: null,
     onElementChange: function (element, previous) {
       var view = this
       forIn(this._events, function (name, event) {
@@ -1707,7 +1705,7 @@ var View = module.exports = factory({
           data.set(element, data.default)
         }
       })
-      forIn(this.children, function (name, data) {
+      forIn(this.children, function (name) {
         var child = view.children[name]
         if (child && child.autoselect) {
           view[name] = view.findChild(name)
@@ -1784,10 +1782,18 @@ var View = module.exports = factory({
         return this._modifiers[name].remove(this.element, this)
       }
     },
+    setupElement: function (root) {
+      root = root || document.body
+      if (root && this.elementSelector) {
+        this.element = this.elementSelector.from(root).find()
+      }
+
+      return this
+    },
     findChild: function (name) {
       var child = this.children[name]
       if (child) {
-        return child.from(this.element, this.rootSelector).find()
+        return child.from(this.element, this.elementSelector).find()
       }
       return null
     }

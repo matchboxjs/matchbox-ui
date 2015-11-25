@@ -3,7 +3,7 @@ var Selector = require("matchbox-dom/Selector")
 
 module.exports = Child
 
-Child.DEFAULT_ATTRIBUTE = "data-child"
+Child.DEFAULT_ATTRIBUTE = "data-view"
 
 function Child (child) {
   child = child || {}
