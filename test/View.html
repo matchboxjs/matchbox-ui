@@ -132,6 +132,84 @@
                 })
             })
 
+            describe("Action", function () {
+                test("simple action", function (element, done) {
+                    var child = createViewElement("child")
+                    child.dataset.action = "test"
+                    element.appendChild(child)
+                    var view = new (View.extend({
+                        actions: {
+                            test: new ui.Action("click", function (e, arg1) {
+                                assert.equal(child, arg1)
+                                done()
+                            })
+                        }
+                    }))(element)
+                    dispatch(child, "click")
+                })
+                test("targeted action", function (element, done) {
+                    var child1 = createViewElement("child1")
+                    var child2 = createViewElement("child2")
+                    element.appendChild(child1)
+                    child1.appendChild(child2)
+                    child2.dataset.action = "test"
+                    var view = new (View.extend({
+                        actions: {
+                            test: new ui.Action("click", ["child1"], function (e, arg1, arg2) {
+                                assert.equal(child1, arg1)
+                                assert.equal(child2, arg2)
+                                done()
+                            })
+                        }
+                    }))(element)
+                    dispatch(child2, "click")
+                })
+                test("child targeted action", function (element, done) {
+                    var child1 = createViewElement("test:child1")
+                    var child2 = createViewElement("test:child2")
+                    element.appendChild(child1)
+                    child1.appendChild(child2)
+                    child2.dataset.action = "test:test"
+                    var view = new (View.extend({
+                        actions: {
+                            test: new ui.Action("click", [":child1"], function (e, arg1, arg2) {
+                                assert.equal(child1, arg1)
+                                assert.equal(child2, arg2)
+                                done()
+                            })
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    dispatch(child2, "click")
+                })
+                test("View child targeted action", function (element, done) {
+                    var child1 = createViewElement("test:child1")
+                    var child2 = createViewElement("test:child2")
+                    element.appendChild(child1)
+                    child1.appendChild(child2)
+                    child2.dataset.action = "test:test"
+                    var view = new (View.extend({
+                        children: {
+                            child1: ui.Child({autoselect: true, Constructor: View})
+                        },
+                        actions: {
+                            test: new ui.Action("click", [":child1"], function (e, arg1, arg2) {
+                                assert.instanceOf(arg1, View)
+                                assert.equal(child1, arg1.element)
+                                assert.equal(child2, arg2)
+                                done()
+                            })
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    dispatch(child2, "click")
+                })
+            })
+
             describe("dataset", function () {
                 describe("no default", function () {
                     test("boolean", function (element, done) {

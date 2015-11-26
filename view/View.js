@@ -12,6 +12,7 @@ var Fragment = require("matchbox-dom/Fragment")
 var Event = require("./Event")
 var Modifier = require("./Modifier")
 var Child = require("./Child")
+var Action = require("./Action")
 
 var View = module.exports = factory({
   include: [Radio],
@@ -26,6 +27,18 @@ var View = module.exports = factory({
         event.handler = view[event.handler].bind(view)
       }
       view._events[name] = event
+    }),
+    actions: new InstanceExtension(function (view, name, action) {
+      if (!(action instanceof Action)) {
+        action = new Action(action)
+      }
+      action.initialize(name, view.viewName)
+      if (typeof action.handler == "string" && typeof view[action.handler] == "function") {
+        action.handler = function () {
+          return view[action.handler].apply(view, arguments)
+        }
+      }
+      view._actions[name] = action
     }),
     dataset: new CacheExtension(function (prototype, name, data) {
       if (!(data instanceof DomData)) {
@@ -46,12 +59,14 @@ var View = module.exports = factory({
         child = new Child(child)
       }
 
+      child.initialize(name, child.value || name)
+
       if (prototype.viewName) {
         if (child instanceof Child) {
-          return child.contains(child.value || name).prefix(prototype.viewName)
+          return child.contains(child.name).prefix(prototype.viewName)
         }
       }
-      return child.contains(child.value || name)
+      return child.contains(child.name)
     }),
     fragments: new CacheExtension(function (prototype, name, fragment) {
       if (!(fragment instanceof Fragment)) {
@@ -71,6 +86,7 @@ var View = module.exports = factory({
   constructor: function View( element ){
     Radio.call(this)
     define.value(this, "_events", {})
+    define.value(this, "_actions", {})
     define.value(this, "_modifiers", {})
     define.writable.value(this, "_element", null)
     define.writable.value(this, "currentLayout", "")
@@ -108,6 +124,10 @@ var View = module.exports = factory({
       forIn(this._events, function (name, event) {
         if (previous) event.unRegister(previous)
         if (element) event.register(element, view)
+      })
+      forIn(this._actions, function (name, action) {
+        if (previous) action.unRegisterEvent(previous)
+        if (element) action.registerEvent(element, view)
       })
       forIn(this._modifiers, function (name, modifier) {
         modifier.reset(element, view)
@@ -202,8 +222,22 @@ var View = module.exports = factory({
 
       return this
     },
-    findChild: function (name) {
-      var child = this.children[name]
+    getChildView: function (childProperty, element) {
+      var member = this[childProperty]
+
+      if (Array.isArray(member)) {
+        var l = member.length
+        while (l--) {
+          if (member[l].element == element) {
+            return member[l]
+          }
+        }
+      }
+
+      return member
+    },
+    findChild: function (property) {
+      var child = this.children[property]
       if (child) {
         return child.from(this.element, this.elementSelector).find()
       }

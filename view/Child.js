@@ -24,9 +24,16 @@ function Child (child) {
 
   this.attribute = this.attribute || Child.DEFAULT_ATTRIBUTE
   this.autoselect = child.autoselect == undefined ? false : child.autoselect
+  this.property = child.property || this.value
+  this.name = child.name || this.value
 }
 
 inherit(Child, Selector)
+
+Child.prototype.initialize = function (property, childName) {
+  this.property = property
+  this.name = childName
+}
 
 Child.prototype.clone = function () {
   return new this.constructor(this)

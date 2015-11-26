@@ -5,11 +5,12 @@ ui.data = require("matchbox-dom/data")
 ui.View = require("./view/View")
 ui.Child = require("./view/Child")
 ui.Event = require("./view/Event")
+ui.Action = require("./view/Action")
 ui.Modifier = require("./view/Modifier")
 ui.SwitchModifier = require("./modifier/SwitchModifier")
 ui.EnumModifier = require("./modifier/EnumModifier")
 
-},{"./modifier/EnumModifier":2,"./modifier/SwitchModifier":3,"./view/Child":35,"./view/Event":36,"./view/Modifier":37,"./view/View":38,"matchbox-dom/data":12}],2:[function(require,module,exports){
+},{"./modifier/EnumModifier":2,"./modifier/SwitchModifier":3,"./view/Action":36,"./view/Child":37,"./view/Event":38,"./view/Modifier":39,"./view/View":40,"matchbox-dom/data":12}],2:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Modifier = require("../view/Modifier")
 
@@ -30,7 +31,7 @@ function EnumModifier (defaultValue, values, animationDuration) {
 
 inherit(EnumModifier, Modifier)
 
-},{"../view/Modifier":37,"matchbox-factory/inherit":24}],3:[function(require,module,exports){
+},{"../view/Modifier":39,"matchbox-factory/inherit":25}],3:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Modifier = require("../view/Modifier")
 
@@ -52,7 +53,7 @@ function SwitchModifier (defaultValue, on, off, animationDuration) {
 
 inherit(SwitchModifier, Modifier)
 
-},{"../view/Modifier":37,"matchbox-factory/inherit":24}],4:[function(require,module,exports){
+},{"../view/Modifier":39,"matchbox-factory/inherit":25}],4:[function(require,module,exports){
 module.exports = DomData
 
 function DomData (name, defaultValue, onChange) {
@@ -391,7 +392,7 @@ BooleanData.prototype.stringify = function (value) {
   return value ? "true" : "false"
 }
 
-},{"../Data":4,"matchbox-factory/inherit":24}],8:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":14}],8:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -417,7 +418,7 @@ FloatData.prototype.stringify = function (value) {
   return ""+value
 }
 
-},{"../Data":4,"matchbox-factory/inherit":24}],9:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":14}],9:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -443,7 +444,7 @@ JSONData.prototype.stringify = function (value) {
   return JSON.stringify(value)
 }
 
-},{"../Data":4,"matchbox-factory/inherit":24}],10:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":14}],10:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -469,7 +470,7 @@ NumberData.prototype.stringify = function (value) {
   return ""+value
 }
 
-},{"../Data":4,"matchbox-factory/inherit":24}],11:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":14}],11:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -495,7 +496,7 @@ StringData.prototype.stringify = function (value) {
   return value ? ""+value : ""
 }
 
-},{"../Data":4,"matchbox-factory/inherit":24}],12:[function(require,module,exports){
+},{"../Data":4,"matchbox-factory/inherit":14}],12:[function(require,module,exports){
 var data = module.exports = {}
 
 data.Boolean = require("./BooleanData")
@@ -621,7 +622,7 @@ function matchCapturePath( selector, el, e, transform, context ){
       delegateElement = findParent(selector[i], el, e)
       if( !delegateElement ) return null
       if (typeof transform == "function") {
-        delegateElement = transform(context, selector, delegateElement)
+        delegateElement = transform(context, selector[i], delegateElement)
       }
       delegateElements.push(delegateElement)
     }
@@ -665,6 +666,14 @@ function findParent( selector, el, e ){
 }
 
 },{"../Selector":6}],14:[function(require,module,exports){
+module.exports = function inherit (Class, Base) {
+  Class.prototype = Object.create(Base.prototype)
+  Class.prototype.constructor = Class
+
+  return Class
+}
+
+},{}],15:[function(require,module,exports){
 var merge = require("matchbox-util/object/merge")
 var forIn = require("matchbox-util/object/in")
 var Extension = require("./Extension")
@@ -772,7 +781,7 @@ Blueprint.prototype.get = function( name, defaultValue ){
   else return defaultValue
 }
 
-},{"./Extension":16,"matchbox-util/object/in":33,"matchbox-util/object/merge":34}],15:[function(require,module,exports){
+},{"./Extension":17,"matchbox-util/object/in":34,"matchbox-util/object/merge":35}],16:[function(require,module,exports){
 var inherit = require("./inherit")
 var Extension = require("./Extension")
 
@@ -788,7 +797,7 @@ function CacheExtension (initialize) {
 
 inherit(CacheExtension, Extension)
 
-},{"./Extension":16,"./inherit":24}],16:[function(require,module,exports){
+},{"./Extension":17,"./inherit":25}],17:[function(require,module,exports){
 module.exports = Extension
 
 function Extension(extension){
@@ -799,7 +808,7 @@ function Extension(extension){
   this.initialize = extension.initialize || null
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var define = require("matchbox-util/object/define")
 var extendObject = require("matchbox-util/object/extend")
 var Blueprint = require("./Blueprint")
@@ -922,7 +931,7 @@ Factory.prototype.findFactory = function( Constructor ){
   return ret
 }
 
-},{"./Blueprint":14,"./augment":20,"./extend":21,"./include":22,"./inherit":24,"matchbox-util/object/define":31,"matchbox-util/object/extend":32}],18:[function(require,module,exports){
+},{"./Blueprint":15,"./augment":21,"./extend":22,"./include":23,"./inherit":25,"matchbox-util/object/define":32,"matchbox-util/object/extend":33}],19:[function(require,module,exports){
 var inherit = require("./inherit")
 var Extension = require("./Extension")
 
@@ -938,7 +947,7 @@ function InstanceExtension (initialize) {
 
 inherit(InstanceExtension, Extension)
 
-},{"./Extension":16,"./inherit":24}],19:[function(require,module,exports){
+},{"./Extension":17,"./inherit":25}],20:[function(require,module,exports){
 var inherit = require("./inherit")
 var Extension = require("./Extension")
 
@@ -954,7 +963,7 @@ function PrototypeExtension (initialize) {
 
 inherit(PrototypeExtension, Extension)
 
-},{"./Extension":16,"./inherit":24}],20:[function(require,module,exports){
+},{"./Extension":17,"./inherit":25}],21:[function(require,module,exports){
 module.exports = function augment (Class, mixin) {
   if (Array.isArray(mixin)) {
     mixin.forEach(function (mixin) {
@@ -972,7 +981,7 @@ module.exports = function augment (Class, mixin) {
   return Class
 }
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = function extend (Class, prototype) {
   Object.getOwnPropertyNames(prototype).forEach(function (name) {
     if (name !== "constructor" ) {
@@ -984,7 +993,7 @@ module.exports = function extend (Class, prototype) {
   return Class
 }
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var extend = require("./extend")
 
 module.exports = function include (Class, Other) {
@@ -1010,7 +1019,7 @@ module.exports = function include (Class, Other) {
   return Class
 }
 
-},{"./extend":21}],23:[function(require,module,exports){
+},{"./extend":22}],24:[function(require,module,exports){
 var Factory = require("./Factory")
 
 module.exports = factory
@@ -1023,15 +1032,9 @@ function factory( blueprint ){
   return new Factory(blueprint).assemble()
 }
 
-},{"./CacheExtension":15,"./Factory":17,"./InstanceExtension":18,"./PrototypeExtension":19}],24:[function(require,module,exports){
-module.exports = function inherit (Class, Base) {
-  Class.prototype = Object.create(Base.prototype)
-  Class.prototype.constructor = Class
-
-  return Class
-}
-
-},{}],25:[function(require,module,exports){
+},{"./CacheExtension":16,"./Factory":18,"./InstanceExtension":19,"./PrototypeExtension":20}],25:[function(require,module,exports){
+arguments[4][14][0].apply(exports,arguments)
+},{"dup":14}],26:[function(require,module,exports){
 module.exports = Channel
 
 function Channel( name ){
@@ -1102,7 +1105,7 @@ Channel.prototype.empty = function(){
   return this
 }
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 var Channel = require("./Channel")
 
 module.exports = Radio
@@ -1201,14 +1204,14 @@ Radio.prototype.emptyChannel = function( channel ){
   return this
 }
 
-},{"./Channel":25}],27:[function(require,module,exports){
+},{"./Channel":26}],28:[function(require,module,exports){
 var Radio = require("./Radio")
 var Channel = require("./Channel")
 
 module.exports = Radio
 module.exports.Channel = Channel
 
-},{"./Channel":25,"./Radio":26}],28:[function(require,module,exports){
+},{"./Channel":26,"./Radio":27}],29:[function(require,module,exports){
 module.exports = Descriptor
 
 var _writable = "_writable"
@@ -1300,14 +1303,14 @@ Descriptor.prototype = {
   }
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 var extend = require("./extend")
 
 module.exports = function (obj) {
   return extend({}, obj)
 }
 
-},{"./extend":32}],30:[function(require,module,exports){
+},{"./extend":33}],31:[function(require,module,exports){
 var copy = require("./copy")
 
 module.exports = function defaults (options, defaults) {
@@ -1326,12 +1329,12 @@ module.exports = function defaults (options, defaults) {
   return obj
 }
 
-},{"./copy":29}],31:[function(require,module,exports){
+},{"./copy":30}],32:[function(require,module,exports){
 var Descriptor = require("./Descriptor")
 
 module.exports = new Descriptor()
 
-},{"./Descriptor":28}],32:[function(require,module,exports){
+},{"./Descriptor":29}],33:[function(require,module,exports){
 module.exports = function extend( obj, extension ){
   for( var name in extension ){
     if( extension.hasOwnProperty(name) ) obj[name] = extension[name]
@@ -1339,7 +1342,7 @@ module.exports = function extend( obj, extension ){
   return obj
 }
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = function( obj, callback ){
   for( var prop in obj ){
     if( obj.hasOwnProperty(prop) ){
@@ -1349,14 +1352,95 @@ module.exports = function( obj, callback ){
   return obj
 }
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 var extend = require("./extend")
 
 module.exports = function( obj, extension ){
   return extend(extend({}, obj), extension)
 }
 
-},{"./extend":32}],35:[function(require,module,exports){
+},{"./extend":33}],36:[function(require,module,exports){
+var inherit = require("matchbox-factory/inherit")
+var include = require("matchbox-factory/include")
+var Selector = require("matchbox-dom/Selector")
+var Event = require("./Event")
+var Child = require("./Child")
+
+module.exports = Action
+
+Action.DEFAULT_ATTRIBUTE = "data-action"
+
+function Action (event, target, handler) {
+  if (!(this instanceof Action)) {
+    switch (arguments.length) {
+      case 1:
+        return new Action(event)
+      case 2:
+        return new Action(event, target)
+      case 3:
+        return new Action(event, target, handler)
+    }
+  }
+  switch (arguments.length) {
+    case 1:
+      this.event = new Event(event)
+      break
+    case 2:
+      this.event = new Event(event, target)
+      break
+    case 3:
+      this.event = new Event(event, target, handler)
+      break
+  }
+  this.selector = null
+}
+
+Action.prototype.initialize = function (action, viewName) {
+  var selector = this.selector = new Selector({attribute: Action.DEFAULT_ATTRIBUTE, value: action})
+
+  if (!Array.isArray(this.event.target)) {
+    this.event.target = []
+  }
+
+  this.event.target = this.event.target.map(function (selector) {
+    if (!(typeof selector == "string")) {
+      return selector
+    }
+
+    if (!viewName || selector[0] != Selector.DEFAULT_NEST_SEPARATOR) {
+      return new Child(selector)
+    }
+
+    selector = selector.substr(1)
+    return new Child(selector).prefix(viewName)
+  })
+
+  if (viewName) {
+    this.event.target.push(selector.prefix(viewName))
+  }
+  else {
+    this.event.target.push(selector)
+  }
+
+  this.event.transform = function (view, delegateSelector, delegateElement) {
+    var child
+    if (delegateSelector instanceof Child) {
+      child = view.getChildView(delegateSelector.name, delegateElement)
+    }
+
+    return child || delegateElement
+  }
+}
+
+Action.prototype.registerEvent = function (element, context) {
+  this.event.register(element, context)
+}
+
+Action.prototype.unRegisterEvent = function (element) {
+  this.event.unRegister(element)
+}
+
+},{"./Child":37,"./Event":38,"matchbox-dom/Selector":6,"matchbox-factory/include":23,"matchbox-factory/inherit":25}],37:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Selector = require("matchbox-dom/Selector")
 
@@ -1383,15 +1467,22 @@ function Child (child) {
 
   this.attribute = this.attribute || Child.DEFAULT_ATTRIBUTE
   this.autoselect = child.autoselect == undefined ? false : child.autoselect
+  this.property = child.property || this.value
+  this.name = child.name || this.value
 }
 
 inherit(Child, Selector)
+
+Child.prototype.initialize = function (property, childName) {
+  this.property = property
+  this.name = childName
+}
 
 Child.prototype.clone = function () {
   return new this.constructor(this)
 }
 
-},{"matchbox-dom/Selector":6,"matchbox-factory/inherit":24}],36:[function(require,module,exports){
+},{"matchbox-dom/Selector":6,"matchbox-factory/inherit":25}],38:[function(require,module,exports){
 var delegate = require("matchbox-dom/event/delegate")
 
 module.exports = Event
@@ -1468,7 +1559,7 @@ Event.prototype.unRegister = function (element) {
   }
 }
 
-},{"matchbox-dom/event/delegate":13}],37:[function(require,module,exports){
+},{"matchbox-dom/event/delegate":13}],39:[function(require,module,exports){
 module.exports = Modifier
 
 function Modifier (modifier) {
@@ -1585,7 +1676,7 @@ function callOnChange (modifier, context, previousValue, newValue) {
   })
 }
 
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 var define = require("matchbox-util/object/define")
 var defaults = require("matchbox-util/object/defaults")
 var forIn = require("matchbox-util/object/in")
@@ -1600,6 +1691,7 @@ var Fragment = require("matchbox-dom/Fragment")
 var Event = require("./Event")
 var Modifier = require("./Modifier")
 var Child = require("./Child")
+var Action = require("./Action")
 
 var View = module.exports = factory({
   include: [Radio],
@@ -1614,6 +1706,18 @@ var View = module.exports = factory({
         event.handler = view[event.handler].bind(view)
       }
       view._events[name] = event
+    }),
+    actions: new InstanceExtension(function (view, name, action) {
+      if (!(action instanceof Action)) {
+        action = new Action(action)
+      }
+      action.initialize(name, view.viewName)
+      if (typeof action.handler == "string" && typeof view[action.handler] == "function") {
+        action.handler = function () {
+          return view[action.handler].apply(view, arguments)
+        }
+      }
+      view._actions[name] = action
     }),
     dataset: new CacheExtension(function (prototype, name, data) {
       if (!(data instanceof DomData)) {
@@ -1634,12 +1738,14 @@ var View = module.exports = factory({
         child = new Child(child)
       }
 
+      child.initialize(name, child.value || name)
+
       if (prototype.viewName) {
         if (child instanceof Child) {
-          return child.contains(child.value || name).prefix(prototype.viewName)
+          return child.contains(child.name).prefix(prototype.viewName)
         }
       }
-      return child.contains(child.value || name)
+      return child.contains(child.name)
     }),
     fragments: new CacheExtension(function (prototype, name, fragment) {
       if (!(fragment instanceof Fragment)) {
@@ -1659,6 +1765,7 @@ var View = module.exports = factory({
   constructor: function View( element ){
     Radio.call(this)
     define.value(this, "_events", {})
+    define.value(this, "_actions", {})
     define.value(this, "_modifiers", {})
     define.writable.value(this, "_element", null)
     define.writable.value(this, "currentLayout", "")
@@ -1696,6 +1803,10 @@ var View = module.exports = factory({
       forIn(this._events, function (name, event) {
         if (previous) event.unRegister(previous)
         if (element) event.register(element, view)
+      })
+      forIn(this._actions, function (name, action) {
+        if (previous) action.unRegisterEvent(previous)
+        if (element) action.registerEvent(element, view)
       })
       forIn(this._modifiers, function (name, modifier) {
         modifier.reset(element, view)
@@ -1790,8 +1901,22 @@ var View = module.exports = factory({
 
       return this
     },
-    findChild: function (name) {
-      var child = this.children[name]
+    getChildView: function (childProperty, element) {
+      var member = this[childProperty]
+
+      if (Array.isArray(member)) {
+        var l = member.length
+        while (l--) {
+          if (member[l].element == element) {
+            return member[l]
+          }
+        }
+      }
+
+      return member
+    },
+    findChild: function (property) {
+      var child = this.children[property]
       if (child) {
         return child.from(this.element, this.elementSelector).find()
       }
@@ -1800,5 +1925,5 @@ var View = module.exports = factory({
   }
 })
 
-},{"./Child":35,"./Event":36,"./Modifier":37,"matchbox-dom/Data":4,"matchbox-dom/Fragment":5,"matchbox-dom/Selector":6,"matchbox-dom/data":12,"matchbox-factory":23,"matchbox-factory/CacheExtension":15,"matchbox-factory/InstanceExtension":18,"matchbox-radio":27,"matchbox-util/object/defaults":30,"matchbox-util/object/define":31,"matchbox-util/object/in":33}]},{},[1])(1)
+},{"./Action":36,"./Child":37,"./Event":38,"./Modifier":39,"matchbox-dom/Data":4,"matchbox-dom/Fragment":5,"matchbox-dom/Selector":6,"matchbox-dom/data":12,"matchbox-factory":24,"matchbox-factory/CacheExtension":16,"matchbox-factory/InstanceExtension":19,"matchbox-radio":28,"matchbox-util/object/defaults":31,"matchbox-util/object/define":32,"matchbox-util/object/in":34}]},{},[1])(1)
 });
