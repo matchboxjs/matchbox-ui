@@ -1381,9 +1381,13 @@ function Action (event, target, handler) {
         return new Action(event, target, handler)
     }
   }
+
+  this.lookup = null
+
   switch (arguments.length) {
     case 1:
       this.event = new Event(event)
+      this.lookup = event.lookup || null
       break
     case 2:
       this.event = new Event(event, target)
@@ -1392,11 +1396,10 @@ function Action (event, target, handler) {
       this.event = new Event(event, target, handler)
       break
   }
-  this.selector = null
 }
 
 Action.prototype.initialize = function (action, viewName) {
-  var selector = this.selector = new Selector({attribute: Action.DEFAULT_ATTRIBUTE, value: action})
+  var selector = new Selector({attribute: Action.DEFAULT_ATTRIBUTE, value: action})
 
   if (!Array.isArray(this.event.target)) {
     this.event.target = []
@@ -1422,10 +1425,14 @@ Action.prototype.initialize = function (action, viewName) {
     this.event.target.push(selector)
   }
 
+  var lookup = this.lookup
   this.event.transform = function (view, delegateSelector, delegateElement) {
     var child
     if (delegateSelector instanceof Child) {
       child = view.getChildView(delegateSelector.name, delegateElement)
+    }
+    else if (delegateSelector instanceof Selector && lookup) {
+      child = view.getChildView(lookup, delegateElement)
     }
 
     return child || delegateElement
@@ -1468,6 +1475,7 @@ function Child (child) {
   this.attribute = this.attribute || Child.DEFAULT_ATTRIBUTE
   this.autoselect = child.autoselect == undefined ? false : child.autoselect
   this.property = child.property || this.value
+  this.lookup = child.lookup || null
   this.name = child.name || this.value
 }
 
@@ -1622,7 +1630,9 @@ Modifier.prototype.set = function (value, element, context) {
     element.classList.remove(previousClassName)
   }
   this.value = newValue
-  element.classList.add(newClassName)
+  if (newClassName) {
+    element.classList.add(newClassName)
+  }
 
   return callOnChange(this, context, previousValue, newValue)
 }
@@ -1698,6 +1708,7 @@ var View = module.exports = factory({
 
   extensions: {
     layouts: new CacheExtension(),
+    models: new CacheExtension(),
     events: new InstanceExtension(function (view, name, event) {
       if (!(event instanceof Event)) {
         event = new Event(event)
@@ -1756,6 +1767,7 @@ var View = module.exports = factory({
   },
 
   layouts: {},
+  models: {},
   events: {},
   dataset: {},
   modifiers: {},
@@ -1765,6 +1777,7 @@ var View = module.exports = factory({
   constructor: function View( element ){
     Radio.call(this)
     define.value(this, "_events", {})
+    define.value(this, "_models", {})
     define.value(this, "_actions", {})
     define.value(this, "_modifiers", {})
     define.writable.value(this, "_element", null)
@@ -1821,6 +1834,9 @@ var View = module.exports = factory({
         if (child && child.autoselect) {
           view[name] = view.findChild(name)
         }
+      })
+      forIn(this.models, function (name, Constructor) {
+        view._models[name] = new Constructor()
       })
     },
     onLayoutChange: function (layout, previous) {},
@@ -1879,7 +1895,7 @@ var View = module.exports = factory({
       return false
     },
     setModifier: function (name, value) {
-      if (this._modifiers[name]) {
+      if (this._modifiers[name] && this.element) {
         return this._modifiers[name].set(value, this.element, this)
       }
     },
@@ -1893,6 +1909,22 @@ var View = module.exports = factory({
         return this._modifiers[name].remove(this.element, this)
       }
     },
+    getModel: function (name) {
+      name = name || "default"
+      var model = this._models[name]
+      if (model == null) {
+        throw new Error("Unable to access unknown model")
+      }
+
+      return model
+    },
+    setModel: function (name, model) {
+      if (!model) {
+        model = name
+        name = "default"
+      }
+      this._models[name] = model
+    },
     setupElement: function (root) {
       root = root || document.body
       if (root && this.elementSelector) {
@@ -1902,15 +1934,18 @@ var View = module.exports = factory({
       return this
     },
     getChildView: function (childProperty, element) {
+      var child = this.children[childProperty]
       var member = this[childProperty]
 
-      if (Array.isArray(member)) {
+      if (child && child.multiple || Array.isArray(member)) {
         var l = member.length
         while (l--) {
           if (member[l].element == element) {
             return member[l]
           }
         }
+
+        return null
       }
 
       return member
@@ -1918,7 +1953,11 @@ var View = module.exports = factory({
     findChild: function (property) {
       var child = this.children[property]
       if (child) {
-        return child.from(this.element, this.elementSelector).find()
+        var element = child.from(this.element, this.elementSelector).find()
+        if (element && child.lookup) {
+          return this.getChildView(child.lookup, element)
+        }
+        return element
       }
       return null
     }

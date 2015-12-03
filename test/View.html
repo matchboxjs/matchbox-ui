@@ -197,6 +197,7 @@
                         actions: {
                             test: new ui.Action("click", [":child1"], function (e, arg1, arg2) {
                                 assert.instanceOf(arg1, View)
+                                assert.equal(this.child1, arg1)
                                 assert.equal(child1, arg1.element)
                                 assert.equal(child2, arg2)
                                 done()
@@ -207,6 +208,28 @@
                         }
                     }))(element)
                     dispatch(child2, "click")
+                })
+                test("View lookup", function (element, done) {
+                    var child = createViewElement("test:child1")
+                    child.dataset.action = "test:test"
+                    element.appendChild(child)
+                    var view = new (View.extend({
+                        children: {
+                            child1: ui.Child({autoselect: true, Constructor: View})
+                        },
+                        actions: {
+                            test: new ui.Action({type: "click", lookup: "child1", handler: function (e, arg1) {
+                                assert.instanceOf(arg1, View)
+                                assert.equal(this.child1, arg1)
+                                assert.equal(child, arg1.element)
+                                done()
+                            }})
+                        },
+                        prototype: {
+                            viewName: "test"
+                        }
+                    }))(element)
+                    dispatch(child, "click")
                 })
             })
 

@@ -60,7 +60,9 @@ Modifier.prototype.set = function (value, element, context) {
     element.classList.remove(previousClassName)
   }
   this.value = newValue
-  element.classList.add(newClassName)
+  if (newClassName) {
+    element.classList.add(newClassName)
+  }
 
   return callOnChange(this, context, previousValue, newValue)
 }

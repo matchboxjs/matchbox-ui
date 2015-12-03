@@ -25,6 +25,7 @@ function Child (child) {
   this.attribute = this.attribute || Child.DEFAULT_ATTRIBUTE
   this.autoselect = child.autoselect == undefined ? false : child.autoselect
   this.property = child.property || this.value
+  this.lookup = child.lookup || null
   this.name = child.name || this.value
 }
 

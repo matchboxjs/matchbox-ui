@@ -19,9 +19,13 @@ function Action (event, target, handler) {
         return new Action(event, target, handler)
     }
   }
+
+  this.lookup = null
+
   switch (arguments.length) {
     case 1:
       this.event = new Event(event)
+      this.lookup = event.lookup || null
       break
     case 2:
       this.event = new Event(event, target)
@@ -30,11 +34,10 @@ function Action (event, target, handler) {
       this.event = new Event(event, target, handler)
       break
   }
-  this.selector = null
 }
 
 Action.prototype.initialize = function (action, viewName) {
-  var selector = this.selector = new Selector({attribute: Action.DEFAULT_ATTRIBUTE, value: action})
+  var selector = new Selector({attribute: Action.DEFAULT_ATTRIBUTE, value: action})
 
   if (!Array.isArray(this.event.target)) {
     this.event.target = []
@@ -60,10 +63,14 @@ Action.prototype.initialize = function (action, viewName) {
     this.event.target.push(selector)
   }
 
+  var lookup = this.lookup
   this.event.transform = function (view, delegateSelector, delegateElement) {
     var child
     if (delegateSelector instanceof Child) {
       child = view.getChildView(delegateSelector.name, delegateElement)
+    }
+    else if (delegateSelector instanceof Selector && lookup) {
+      child = view.getChildView(lookup, delegateElement)
     }
 
     return child || delegateElement

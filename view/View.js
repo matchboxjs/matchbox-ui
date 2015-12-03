@@ -19,6 +19,7 @@ var View = module.exports = factory({
 
   extensions: {
     layouts: new CacheExtension(),
+    models: new CacheExtension(),
     events: new InstanceExtension(function (view, name, event) {
       if (!(event instanceof Event)) {
         event = new Event(event)
@@ -77,6 +78,7 @@ var View = module.exports = factory({
   },
 
   layouts: {},
+  models: {},
   events: {},
   dataset: {},
   modifiers: {},
@@ -86,6 +88,7 @@ var View = module.exports = factory({
   constructor: function View( element ){
     Radio.call(this)
     define.value(this, "_events", {})
+    define.value(this, "_models", {})
     define.value(this, "_actions", {})
     define.value(this, "_modifiers", {})
     define.writable.value(this, "_element", null)
@@ -142,6 +145,9 @@ var View = module.exports = factory({
         if (child && child.autoselect) {
           view[name] = view.findChild(name)
         }
+      })
+      forIn(this.models, function (name, Constructor) {
+        view._models[name] = new Constructor()
       })
     },
     onLayoutChange: function (layout, previous) {},
@@ -200,7 +206,7 @@ var View = module.exports = factory({
       return false
     },
     setModifier: function (name, value) {
-      if (this._modifiers[name]) {
+      if (this._modifiers[name] && this.element) {
         return this._modifiers[name].set(value, this.element, this)
       }
     },
@@ -214,6 +220,22 @@ var View = module.exports = factory({
         return this._modifiers[name].remove(this.element, this)
       }
     },
+    getModel: function (name) {
+      name = name || "default"
+      var model = this._models[name]
+      if (model == null) {
+        throw new Error("Unable to access unknown model")
+      }
+
+      return model
+    },
+    setModel: function (name, model) {
+      if (!model) {
+        model = name
+        name = "default"
+      }
+      this._models[name] = model
+    },
     setupElement: function (root) {
       root = root || document.body
       if (root && this.elementSelector) {
@@ -223,15 +245,18 @@ var View = module.exports = factory({
       return this
     },
     getChildView: function (childProperty, element) {
+      var child = this.children[childProperty]
       var member = this[childProperty]
 
-      if (Array.isArray(member)) {
+      if (child && child.multiple || Array.isArray(member)) {
         var l = member.length
         while (l--) {
           if (member[l].element == element) {
             return member[l]
           }
         }
+
+        return null
       }
 
       return member
@@ -239,7 +264,11 @@ var View = module.exports = factory({
     findChild: function (property) {
       var child = this.children[property]
       if (child) {
-        return child.from(this.element, this.elementSelector).find()
+        var element = child.from(this.element, this.elementSelector).find()
+        if (element && child.lookup) {
+          return this.getChildView(child.lookup, element)
+        }
+        return element
       }
       return null
     }
