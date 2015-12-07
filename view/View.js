@@ -60,7 +60,9 @@ var View = module.exports = factory({
         child = new Child(child)
       }
 
-      child.initialize(name, child.value || name)
+      if (child instanceof Child) {
+        child.initialize(name, child.value || name)
+      }
 
       if (prototype.viewName) {
         if (child instanceof Child) {
@@ -262,7 +264,14 @@ var View = module.exports = factory({
       return member
     },
     findChild: function (property) {
-      var child = this.children[property]
+      var child
+      if (typeof property == "string") {
+        child = this.children[property]
+      }
+      else if (property instanceof Selector) {
+        child = property
+      }
+
       if (child) {
         var element = child.from(this.element, this.elementSelector).find()
         if (element && child.lookup) {
@@ -270,6 +279,7 @@ var View = module.exports = factory({
         }
         return element
       }
+
       return null
     }
   }
