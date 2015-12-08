@@ -9,6 +9,9 @@ var domData = require("matchbox-dom/data")
 var Selector = require("matchbox-dom/Selector")
 var Radio = require("matchbox-radio")
 var Fragment = require("matchbox-dom/Fragment")
+var EventInit = require("./EventInit")
+var ActionInit = require("./ActionInit")
+var ModifierInit = require("./ModifierInit")
 var Event = require("./Event")
 var Modifier = require("./Modifier")
 var Child = require("./Child")
@@ -20,20 +23,31 @@ var View = module.exports = factory({
   extensions: {
     layouts: new CacheExtension(),
     models: new CacheExtension(),
-    events: new InstanceExtension(function (view, name, event) {
-      if (!(event instanceof Event)) {
-        event = new Event(event)
+    events: new InstanceExtension(function (view, name, init) {
+      var event
+      if (!(init instanceof EventInit)) {
+        init = new EventInit(init)
       }
+      event = new Event(init)
+
       if (typeof event.handler == "string" && typeof view[event.handler] == "function") {
         event.handler = view[event.handler].bind(view)
       }
+
+      if (view.viewName) {
+        event.initialize(view, view.viewName)
+      }
+
       view._events[name] = event
     }),
-    actions: new InstanceExtension(function (view, name, action) {
-      if (!(action instanceof Action)) {
-        action = new Action(action)
+    actions: new InstanceExtension(function (view, name, init) {
+      if (!(init instanceof ActionInit)) {
+        init = new ActionInit(init)
       }
+
+      var action = new Action(init)
       action.initialize(name, view.viewName)
+
       if (typeof action.handler == "string" && typeof view[action.handler] == "function") {
         action.handler = function () {
           return view[action.handler].apply(view, arguments)
@@ -49,11 +63,11 @@ var View = module.exports = factory({
 
       return data
     }),
-    modifiers: new InstanceExtension(function (view, name, modifier) {
-      if (!(modifier instanceof Modifier)) {
-        modifier = new Modifier(modifier)
+    modifiers: new InstanceExtension(function (view, name, modifInit) {
+      if (!(modifInit instanceof ModifierInit)) {
+        modifInit = new ModifierInit(modifInit)
       }
-      view._modifiers[name] = modifier
+      view._modifiers[name] = new Modifier(modifInit)
     }),
     children: new CacheExtension(function(prototype, name, child){
       if (!(child instanceof Selector)) {

@@ -1,30 +1,50 @@
 module.exports = Modifier
 
-function Modifier (modifier) {
-  if (!(this instanceof Modifier)) {
-    return new Modifier(modifier)
-  }
-
-  this.type = modifier.type
-  this.default = modifier.default == null ? null : modifier.default
+function Modifier (modifInit) {
+  this.type = modifInit.type
+  this.default = modifInit.default == null ? null : modifInit.default
   this.values = []
   this.value = null
   this.onchange = null
-  this.animationDuration = modifier.animationDuration || 0
+  this.animationDuration = modifInit.animationDuration || 0
   this.timerId = null
   switch (this.type) {
     case "switch":
-      this.values.push(modifier.on && typeof modifier.on == "string" ? modifier.on : null)
-      this.values.push(modifier.off && typeof modifier.off == "string" ? modifier.off : null)
+      this.values.push(modifInit.on && typeof modifInit.on == "string" ? modifInit.on : null)
+      this.values.push(modifInit.off && typeof modifInit.off == "string" ? modifInit.off : null)
       break
     case "enum":
-      this.values = modifier.values || []
+      this.values = modifInit.values || []
       break
   }
 }
 
 Modifier.prototype.reset = function (element, context) {
-  if (this.default != null) {
+  var currentValue
+  var hasInitialValue = this.values.some(function (value) {
+    if (value && element.classList.contains(value)) {
+      currentValue = value
+      return true
+    }
+    return false
+  })
+
+  if (hasInitialValue) {
+    if (this.type == "switch") {
+      // on
+      if (currentValue === this.values[0]) {
+        this.value = true
+      }
+      // off
+      if (currentValue === this.values[1]) {
+        this.value = false
+      }
+    }
+    else {
+      this.value = currentValue
+    }
+  }
+  else if (this.default != null) {
     this.set(this.default, element, context)
   }
 }
@@ -110,8 +130,8 @@ function callOnChange (modifier, context, previousValue, newValue) {
       resolve()
     }
   }).then(function () {
-    if (typeof modifier.onchange == "function") {
-      return modifier.onchange.call(context, previousValue, newValue)
-    }
-  })
+        if (typeof modifier.onchange == "function") {
+          return modifier.onchange.call(context, previousValue, newValue)
+        }
+      })
 }

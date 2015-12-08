@@ -1,5 +1,5 @@
 var inherit = require("matchbox-factory/inherit")
-var Modifier = require("../view/Modifier")
+var ModifierInit = require("./ModifierInit")
 
 module.exports = EnumModifier
 
@@ -8,12 +8,10 @@ function EnumModifier (defaultValue, values, animationDuration) {
     return new EnumModifier(defaultValue, values, animationDuration)
   }
 
-  Modifier.call(this, {
-    type: "enum",
-    default: defaultValue,
-    values: values,
-    animationDuration: animationDuration
-  })
+  this.type = "enum"
+  this.default = defaultValue
+  this.values = values
+  this.animationDuration = animationDuration
 }
 
-inherit(EnumModifier, Modifier)
+inherit(EnumModifier, ModifierInit)

@@ -8,32 +8,9 @@ module.exports = Action
 
 Action.DEFAULT_ATTRIBUTE = "data-action"
 
-function Action (event, target, handler) {
-  if (!(this instanceof Action)) {
-    switch (arguments.length) {
-      case 1:
-        return new Action(event)
-      case 2:
-        return new Action(event, target)
-      case 3:
-        return new Action(event, target, handler)
-    }
-  }
-
-  this.lookup = null
-
-  switch (arguments.length) {
-    case 1:
-      this.event = new Event(event)
-      this.lookup = event.lookup || null
-      break
-    case 2:
-      this.event = new Event(event, target)
-      break
-    case 3:
-      this.event = new Event(event, target, handler)
-      break
-  }
+function Action (actionInit) {
+  this.lookup = actionInit.lookup || null
+  this.event = new Event(actionInit.eventOptions)
 }
 
 Action.prototype.initialize = function (action, viewName) {

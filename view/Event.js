@@ -1,49 +1,50 @@
 var delegate = require("matchbox-dom/event/delegate")
+var Selector = require("matchbox-dom/Selector")
+var Child = require("./Child")
 
 module.exports = Event
 
-function Event (event, target, capture, once, handler) {
-  if (!(this instanceof Event)) {
-    return new Event(event, target, capture, once, handler)
-  }
-
-  if (typeof event == "string") {
-    this.type = event
-    switch (arguments.length) {
-      case 2:
-        this.handler = target
-        break
-      case 3:
-        this.target = target
-        this.handler = capture
-        break
-      case 4:
-        this.target = target
-        this.capture = capture
-        this.handler = once
-        break
-      case 5:
-        this.target = target
-        this.capture = capture
-        this.once = once
-        this.handler = handler
-        break
-    }
-    this.transform = null
-  }
-  else {
-    event = event || {}
-    this.type = event.type
-    this.target = event.target
-    this.once = !!event.once
-    this.capture = !!event.capture
-    this.handler = event.handler
-    if (event.transform ) this.transform = event.transform
-  }
+function Event (eventInit) {
+  this.type = eventInit.type
+  this.target = eventInit.target
+  this.once = !!eventInit.once
+  this.capture = !!eventInit.capture
+  this.handler = eventInit.handler
+  this.transform = eventInit.transform
   this.proxy = this.handler
 }
 
-Event.prototype.transform = function () {}
+Event.prototype.initialize = function (view, viewName) {
+  if (this.target) {
+    if (!Array.isArray(this.target)) {
+      this.target = [this.target]
+    }
+
+    this.target = this.target.map(function (selector) {
+      if (!(typeof selector == "string")) {
+        return selector
+      }
+
+      if (selector[0] != Selector.DEFAULT_NEST_SEPARATOR) {
+        return new Child(selector)
+      }
+
+      selector = selector.substr(1)
+      return view.children[selector]
+    })
+  }
+
+  if (!this.transform) {
+    this.transform = function (view, delegateSelector, delegateElement) {
+      var child
+      if (delegateSelector instanceof Child) {
+        child = view.getChildView(delegateSelector.property, delegateElement)
+      }
+
+      return child || delegateElement
+    }
+  }
+}
 
 Event.prototype.register = function (element, context) {
   if (this.target) {

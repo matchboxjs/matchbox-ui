@@ -28,7 +28,13 @@
             it(name, function (done) {
                 var element = createViewElement("test")
                 document.body.appendChild(element)
-                fn.call(this, element, done)
+                try {
+                    fn.call(this, element, done)
+                }
+                catch (e) {
+                    document.body.removeChild(element)
+                    throw e
+                }
                 document.body.removeChild(element)
             })
         }

@@ -1,5 +1,5 @@
 var inherit = require("matchbox-factory/inherit")
-var Modifier = require("../view/Modifier")
+var ModifierInit = require("./ModifierInit")
 
 module.exports = SwitchModifier
 
@@ -8,13 +8,11 @@ function SwitchModifier (defaultValue, on, off, animationDuration) {
     return new SwitchModifier(defaultValue, on, off, animationDuration)
   }
 
-  Modifier.call(this, {
-    type: "switch",
-    default: defaultValue,
-    on: on,
-    off: off,
-    animationDuration: animationDuration
-  })
+  this.type = "switch"
+  this.default = defaultValue
+  this.on = on
+  this.off = off
+  this.animationDuration = animationDuration
 }
 
-inherit(SwitchModifier, Modifier)
+inherit(SwitchModifier, ModifierInit)
