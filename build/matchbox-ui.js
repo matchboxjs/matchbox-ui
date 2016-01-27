@@ -10,7 +10,297 @@ ui.Modifier = require("./view/ModifierInit")
 ui.SwitchModifier = require("./view/SwitchModifier")
 ui.EnumModifier = require("./view/EnumModifier")
 
-},{"./view/ActionInit":35,"./view/Child":36,"./view/EnumModifier":37,"./view/EventInit":39,"./view/ModifierInit":41,"./view/SwitchModifier":42,"./view/View":43,"matchbox-dom/data":10}],2:[function(require,module,exports){
+},{"./view/ActionInit":35,"./view/Child":36,"./view/EnumModifier":37,"./view/EventInit":39,"./view/ModifierInit":41,"./view/SwitchModifier":42,"./view/View":43,"matchbox-dom/data":21}],2:[function(require,module,exports){
+/**
+ * Apply one or more functional mixins to a constructor's prototype.
+ *
+ * @param {Function} Constructor
+ * @param {Function|Function[]} mixin
+ *
+ * @return {Function} Constructor
+ * */
+module.exports = function augment(Constructor, mixin) {
+  if (Array.isArray(mixin)) {
+    mixin.forEach(function(func) {
+      if (typeof func == "function") {
+        func.call(Constructor.prototype)
+      }
+    })
+  }
+  else if (typeof mixin == "function") {
+    mixin.call(Constructor.prototype)
+  }
+
+  return Constructor
+}
+
+},{}],3:[function(require,module,exports){
+/**
+ * Extend a single constructor's prototype with a prototype object
+ * copying methods with the same property descriptor.
+ *
+ * @param {Function} Constructor
+ * @param {Object} prototype
+ *
+ * @return {Function} Constructor
+ * */
+module.exports = function extend(Constructor, prototype) {
+  Object.getOwnPropertyNames(prototype).forEach(function(name) {
+    if (name !== "constructor") {
+      var descriptor = Object.getOwnPropertyDescriptor(prototype, name)
+      Object.defineProperty(Constructor.prototype, name, descriptor)
+    }
+  })
+
+  return Constructor
+}
+
+},{}],4:[function(require,module,exports){
+var extend = require("./extend")
+
+/**
+ * Extends a constructor's prototype with one or more constructor or prototype object
+ *
+ * @param {Function} Constructor
+ * @param {Function|Object} Other
+ *
+ * @return {Function} Constructor
+ * */
+module.exports = function include(Constructor, Other) {
+  if (Array.isArray(Other)) {
+    Other.forEach(function(Other) {
+      if (typeof Other == "function") {
+        extend(Constructor, Other.prototype)
+      }
+      else if (typeof Other == "object") {
+        extend(Constructor, Other)
+      }
+    })
+  }
+  else {
+    if (typeof Other == "function") {
+      extend(Constructor, Other.prototype)
+    }
+    else if (typeof Other == "object") {
+      extend(Constructor, Other)
+    }
+  }
+
+  return Constructor
+}
+
+},{"./extend":3}],5:[function(require,module,exports){
+/**
+ * Inherit from another constructor
+ *
+ * @param {Function} Constructor
+ * @param {Function} Base
+ *
+ * @return {Function} Class
+ * */
+module.exports = function inherit(Constructor, Base) {
+  Constructor.prototype = Object.create(Base.prototype)
+  Constructor.prototype.constructor = Constructor
+
+  return Constructor
+}
+
+},{}],6:[function(require,module,exports){
+module.exports = Descriptor
+
+var propWritable = "_writable"
+var propEnumerable = "_enumerable"
+var propConfigurable = "_configurable"
+
+function Descriptor(writable, enumerable, configurable) {
+  this.value(this, propWritable, writable || false)
+  this.value(this, propEnumerable, enumerable || false)
+  this.value(this, propConfigurable, configurable || false)
+
+  this.getter(this, "w", function() {
+    return this.writable
+  })
+  this.getter(this, "writable", function() {
+    return new Descriptor(true, enumerable, configurable)
+  })
+
+  this.getter(this, "e", function() {
+    return this.enumerable
+  })
+  this.getter(this, "enumerable", function() {
+    return new Descriptor(writable, true, configurable)
+  })
+
+  this.getter(this, "c", function() {
+    return this.configurable
+  })
+  this.getter(this, "configurable", function() {
+    return new Descriptor(writable, enumerable, true)
+  })
+}
+
+Descriptor.prototype = {
+  accessor: function(obj, name, getter, setter) {
+    Object.defineProperty(obj, name, {
+      enumerable: this[propEnumerable],
+      configurable: this[propConfigurable],
+      get: getter,
+      set: setter
+    })
+    return this
+  },
+  getter: function(obj, name, fn) {
+    Object.defineProperty(obj, name, {
+      enumerable: this[propEnumerable],
+      configurable: this[propConfigurable],
+      get: fn
+    })
+    return this
+  },
+  setter: function(obj, name, fn) {
+    Object.defineProperty(obj, name, {
+      enumerable: this[propEnumerable],
+      configurable: this[propConfigurable],
+      set: fn
+    })
+    return this
+  },
+  value: function(obj, name, value) {
+    Object.defineProperty(obj, name, {
+      writable: this[propWritable],
+      enumerable: this[propEnumerable],
+      configurable: this[propConfigurable],
+      value: value
+    })
+    return this
+  },
+  method: function(obj, name, fn) {
+    Object.defineProperty(obj, name, {
+      writable: this[propWritable],
+      enumerable: false,
+      configurable: this[propConfigurable],
+      value: fn
+    })
+    return this
+  },
+  property: function(obj, name, value) {
+    Object.defineProperty(obj, name, {
+      writable: this[propWritable],
+      enumerable: false,
+      configurable: this[propConfigurable],
+      value: value
+    })
+    return this
+  },
+  constant: function(obj, name, value) {
+    Object.defineProperty(obj, name, {
+      writable: false,
+      enumerable: false,
+      configurable: false,
+      value: value
+    })
+    return this
+  }
+}
+
+},{}],7:[function(require,module,exports){
+var extend = require("./extend")
+
+/**
+ * Shallow copy an object
+ *
+ * @param {Object} obj
+ *
+ * @return {Object} a copy of the object
+ * */
+module.exports = function(obj) {
+  return extend({}, obj)
+}
+
+},{"./extend":10}],8:[function(require,module,exports){
+var copy = require("./copy")
+/**
+ * Return a new object with extended keys to contain default values.
+ *
+ * @param {Object} options
+ * @param {Object} defaultValues
+ *
+ * @return {Object} merged object
+ * */
+module.exports = function defaults(options, defaultValues) {
+  if (!options) {
+    return copy(defaultValues)
+  }
+
+  var obj = copy(options)
+
+  for (var prop in defaultValues) {
+    if (defaultValues.hasOwnProperty(prop) && !options.hasOwnProperty(prop)) {
+      obj[prop] = defaultValues[prop]
+    }
+  }
+
+  return obj
+}
+
+},{"./copy":7}],9:[function(require,module,exports){
+var Descriptor = require("./Descriptor")
+
+/**
+ * Define a property with a descriptor
+ * */
+module.exports = new Descriptor()
+
+},{"./Descriptor":6}],10:[function(require,module,exports){
+/**
+ * Extend an object with another
+ *
+ * @param {Object} obj
+ * @param {Object} extension
+ *
+ * @return {Object} obj
+ * */
+module.exports = function extend(obj, extension) {
+  for (var name in extension) {
+    if (extension.hasOwnProperty(name)) obj[name] = extension[name]
+  }
+  return obj
+}
+
+},{}],11:[function(require,module,exports){
+/**
+ * Safely iterate on an object
+ *
+ * @param {Object} obj
+ * @param {Function} callback(String key, * value, Object obj)
+ *
+ * @return {Object} obj
+ * */
+module.exports = function(obj, callback) {
+  for (var prop in obj) {
+    if (obj.hasOwnProperty(prop)) {
+      callback(prop, obj[prop], obj)
+    }
+  }
+  return obj
+}
+
+},{}],12:[function(require,module,exports){
+var extend = require("./extend")
+
+/**
+ * Merge two objects and return a new object.
+ *
+ * @param {Object} base
+ * @param {Object} extension
+ *
+ * @return {Object} base
+ * */
+module.exports = function(base, extension) {
+  return extend(extend({}, base), extension)
+}
+
+},{"./extend":10}],13:[function(require,module,exports){
 module.exports = DomData
 
 function DomData (name, defaultValue, onChange) {
@@ -96,7 +386,7 @@ DomData.prototype.remove = function (element, context, silent) {
 }
 
 
-},{}],3:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = Fragment
 
 function Fragment (fragment) {
@@ -158,7 +448,7 @@ Fragment.prototype.render = function (context, options) {
   })
 }
 
-},{}],4:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = Selector
 
 Selector.DEFAULT_NEST_SEPARATOR = ":"
@@ -323,7 +613,7 @@ Selector.prototype.toString = function () {
   return string
 }
 
-},{}],5:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -349,7 +639,7 @@ BooleanData.prototype.stringify = function (value) {
   return value ? "true" : "false"
 }
 
-},{"../Data":2,"matchbox-factory/inherit":12}],6:[function(require,module,exports){
+},{"../Data":13,"matchbox-factory/inherit":23}],17:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -375,7 +665,7 @@ FloatData.prototype.stringify = function (value) {
   return ""+value
 }
 
-},{"../Data":2,"matchbox-factory/inherit":12}],7:[function(require,module,exports){
+},{"../Data":13,"matchbox-factory/inherit":23}],18:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -401,7 +691,7 @@ JSONData.prototype.stringify = function (value) {
   return JSON.stringify(value)
 }
 
-},{"../Data":2,"matchbox-factory/inherit":12}],8:[function(require,module,exports){
+},{"../Data":13,"matchbox-factory/inherit":23}],19:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -427,7 +717,7 @@ NumberData.prototype.stringify = function (value) {
   return ""+value
 }
 
-},{"../Data":2,"matchbox-factory/inherit":12}],9:[function(require,module,exports){
+},{"../Data":13,"matchbox-factory/inherit":23}],20:[function(require,module,exports){
 var inherit = require("matchbox-factory/inherit")
 var Data = require("../Data")
 
@@ -453,7 +743,7 @@ StringData.prototype.stringify = function (value) {
   return value ? ""+value : ""
 }
 
-},{"../Data":2,"matchbox-factory/inherit":12}],10:[function(require,module,exports){
+},{"../Data":13,"matchbox-factory/inherit":23}],21:[function(require,module,exports){
 var data = module.exports = {}
 
 data.Boolean = require("./BooleanData")
@@ -485,7 +775,7 @@ data.create = function (name, value, onChange) {
   }
 }
 
-},{"./BooleanData":5,"./FloatData":6,"./JSONData":7,"./NumberData":8,"./StringData":9}],11:[function(require,module,exports){
+},{"./BooleanData":16,"./FloatData":17,"./JSONData":18,"./NumberData":19,"./StringData":20}],22:[function(require,module,exports){
 var Selector = require("../Selector")
 
 /**
@@ -622,7 +912,7 @@ function findParent( selector, el, e ){
   return null
 }
 
-},{"../Selector":4}],12:[function(require,module,exports){
+},{"../Selector":15}],23:[function(require,module,exports){
 module.exports = function inherit (Class, Base) {
   Class.prototype = Object.create(Base.prototype)
   Class.prototype.constructor = Class
@@ -630,14 +920,28 @@ module.exports = function inherit (Class, Base) {
   return Class
 }
 
-},{}],13:[function(require,module,exports){
-var merge = require("matchbox-util/object/merge")
-var forIn = require("matchbox-util/object/in")
+},{}],24:[function(require,module,exports){
+var Factory = require("./src/Factory")
+
+module.exports = factory
+
+factory.CacheExtension = require("./src/CacheExtension")
+factory.InstanceExtension = require("./src/InstanceExtension")
+factory.PrototypeExtension = require("./src/PrototypeExtension")
+
+function factory( blueprint ){
+  return new Factory(blueprint).assemble()
+}
+
+},{"./src/CacheExtension":26,"./src/Factory":28,"./src/InstanceExtension":29,"./src/PrototypeExtension":30}],25:[function(require,module,exports){
+var merge = require("backyard/object/merge")
+var forIn = require("backyard/object/in")
+
 var Extension = require("./Extension")
 
 module.exports = Blueprint
 
-function Blueprint( blocks, parent ){
+function Blueprint(blocks, parent) {
   var blueprint = this
 
   this.blocks = merge(blocks)
@@ -645,11 +949,7 @@ function Blueprint( blocks, parent ){
 
   this.localExtensions = this.get("extensions", {})
 
-  forIn(this.localExtensions, function( name, extension ){
-    //if (parent && !!~parent.extensionNames.indexOf(name)) {
-    //  throw new Error("Description override is not supported")
-    //}
-
+  forIn(this.localExtensions, function(name, extension) {
     extension = extension instanceof Extension
         ? extension
         : new Extension(extension)
@@ -661,7 +961,7 @@ function Blueprint( blocks, parent ){
 
   if (parent) {
     this.globalExtensions = merge(parent.globalExtensions, this.localExtensions)
-    forIn(this.globalExtensions, function (name, extension) {
+    forIn(this.globalExtensions, function(name, extension) {
       if (extension.inherit) {
         blueprint.blocks[name] = merge(parent.get(name), blueprint.get(name))
       }
@@ -669,16 +969,21 @@ function Blueprint( blocks, parent ){
   }
 }
 
-Blueprint.prototype.buildPrototype = function( prototype, top ){
-  this.build("prototype", this.globalExtensions, top, function (name, extension, block) {
-    forIn(block, function( name, value ){
-      extension.initialize(prototype, name, value)
-    })
+Blueprint.prototype.buildPrototype = function(prototype, top) {
+  this.build("prototype", this.globalExtensions, top, function(name, extension, block) {
+    if (extension.loop) {
+      forIn(block, function(name, value) {
+        extension.initialize(prototype, name, value)
+      })
+    }
+    else {
+      extension.initialize(prototype, name, block)
+    }
   })
 }
 
-Blueprint.prototype.buildCache = function( prototype, top ){
-  this.build("cache", this.globalExtensions, top, function (name, extension, block) {
+Blueprint.prototype.buildCache = function(prototype, top) {
+  this.build("cache", this.globalExtensions, top, function(name, extension, block) {
     if (!prototype.hasOwnProperty(name)) {
       prototype[name] = {}
     }
@@ -686,36 +991,46 @@ Blueprint.prototype.buildCache = function( prototype, top ){
     var cache = prototype[name]
     var initialize = extension.initialize
 
-    forIn(block, function( name, value ){
+    if (extension.loop) {
+      forIn(block, function(name, value) {
+        cache[name] = initialize
+            ? initialize(prototype, name, value)
+            : value
+      })
+    }
+    else {
       cache[name] = initialize
-          ? initialize(prototype, name, value)
-          : value
-    })
+          ? initialize(prototype, name, block)
+          : block
+    }
   })
 }
 
-Blueprint.prototype.buildInstance = function( instance, top ){
-  this.build("instance", this.localExtensions, top, function (name, extension, block) {
-    forIn(block, function( name, value ){
-      extension.initialize(instance, name, value)
-    })
+Blueprint.prototype.buildInstance = function(instance, top) {
+  this.build("instance", this.localExtensions, top, function(name, extension, block) {
+    if (extension.loop) {
+      forIn(block, function(name, value) {
+        extension.initialize(instance, name, value)
+      })
+    }
+    else {
+      extension.initialize(instance, name, block)
+    }
   })
 }
 
-Blueprint.prototype.build = function( type, extensions, top, build ){
+Blueprint.prototype.build = function(type, extensions, top, build) {
   var blueprint = top || this
-  //var base = this
-  forIn(extensions, function (name, extension) {
-    if( extension.type != type ) return
-    //var blueprint = extension.inherit ? top : base
+  forIn(extensions, function(name, extension) {
+    if (extension.type != type) return
     var block = blueprint.get(name)
-    if( !block ) return
+    if (!block) return
 
     build(name, extension, block)
   })
 }
 
-Blueprint.prototype.digest = function( name, fn, loop ){
+Blueprint.prototype.digest = function(name, fn, loop) {
   if (this.has(name)) {
     var block = this.get(name)
     if (loop) {
@@ -727,59 +1042,72 @@ Blueprint.prototype.digest = function( name, fn, loop ){
   }
 }
 
-Blueprint.prototype.has = function( name ){
+Blueprint.prototype.has = function(name) {
   return this.blocks.hasOwnProperty(name) && this.blocks[name] != null
 }
 
-Blueprint.prototype.get = function( name, defaultValue ){
-  if( this.has(name) ){
+Blueprint.prototype.get = function(name, defaultValue) {
+  if (this.has(name)) {
     return this.blocks[name]
   }
-  else return defaultValue
+  return defaultValue
 }
 
-},{"./Extension":15,"matchbox-util/object/in":32,"matchbox-util/object/merge":33}],14:[function(require,module,exports){
-var inherit = require("./inherit")
+},{"./Extension":27,"backyard/object/in":11,"backyard/object/merge":12}],26:[function(require,module,exports){
+var extend = require("backyard/object/extend")
+var defaults = require("backyard/object/defaults")
+var inherit = require("backyard/function/inherit")
+
 var Extension = require("./Extension")
 
 module.exports = CacheExtension
 
-function CacheExtension (initialize) {
-  Extension.call(this, {
+function CacheExtension(options, initialize) {
+  if (!initialize) {
+    initialize = options
+    options = {}
+  }
+  options = defaults(options, {
+    loop: true
+  })
+  extend(options, {
     type: "cache",
     inherit: true,
     initialize: initialize
   })
+  Extension.call(this, options)
 }
 
 inherit(CacheExtension, Extension)
 
-},{"./Extension":15,"./inherit":23}],15:[function(require,module,exports){
+},{"./Extension":27,"backyard/function/inherit":5,"backyard/object/defaults":8,"backyard/object/extend":10}],27:[function(require,module,exports){
 module.exports = Extension
 
-function Extension(extension){
+function Extension(extension) {
   extension = extension || {}
   this.name = ""
   this.type = extension.type || "instance"
   this.inherit = extension.inherit || false
   this.initialize = extension.initialize || null
+  this.loop = extension.loop == null ? true : extension.loop
 }
 
-},{}],16:[function(require,module,exports){
-var define = require("matchbox-util/object/define")
-var extendObject = require("matchbox-util/object/extend")
+},{}],28:[function(require,module,exports){
+var define = require("backyard/object/define")
+var extendObject = require("backyard/object/extend")
+var extendPrototype = require("backyard/function/extend")
+var augment = require("backyard/function/augment")
+var include = require("backyard/function/include")
+var inherit = require("backyard/function/inherit")
+
 var Blueprint = require("./Blueprint")
-var extend = require("./extend")
-var augment = require("./augment")
-var include = require("./include")
-var inherit = require("./inherit")
 
 module.exports = Factory
 
-function Factory( blueprint, parent ){
+function Factory(blueprint, parent) {
   var factory = this
 
-  if( !(blueprint instanceof Blueprint) ) {
+  if (!(blueprint instanceof Blueprint)) {
     blueprint = new Blueprint(blueprint, parent ? parent.blueprint : null)
   }
 
@@ -788,13 +1116,13 @@ function Factory( blueprint, parent ){
   this.ancestors = parent ? parent.ancestors.concat([parent]) : []
   this.root = this.ancestors[0] || null
   this.Super = blueprint.get("inherit", null)
-  this.Constructor = blueprint.get("constructor", function () {
+  this.Constructor = blueprint.get("constructor", function() {
     if (factory.Super) {
       factory.Super.apply(this, arguments)
     }
     this.constructor.initialize(this)
   })
-  this.Constructor.extend = function (superBlueprint) {
+  this.Constructor.extend = function(superBlueprint) {
     superBlueprint = superBlueprint || {}
     superBlueprint["inherit"] = factory.Constructor
     var superFactory = new Factory(superBlueprint, factory)
@@ -804,8 +1132,7 @@ function Factory( blueprint, parent ){
   this.industry.push(this)
 }
 
-Factory.prototype.assemble = function(){
-  var factory = this
+Factory.prototype.assemble = function() {
   var blueprint = this.blueprint
   var Constructor = this.Constructor
 
@@ -817,8 +1144,7 @@ Factory.prototype.assemble = function(){
   blueprint.buildPrototype(Constructor.prototype, blueprint)
   blueprint.buildCache(Constructor.prototype, blueprint)
 
-  Constructor.initialize = function (instance) {
-    //var top = factory.findFactory(instance.constructor).blueprint
+  Constructor.initialize = function(instance) {
     var top = instance.constructor.blueprint
     blueprint.buildInstance(instance, top)
   }
@@ -826,42 +1152,41 @@ Factory.prototype.assemble = function(){
   return Constructor
 }
 
-Factory.prototype.digest = function(  ){
-  var factory = this
+Factory.prototype.digest = function() {
   var blueprint = this.blueprint
   var Constructor = this.Constructor
   var proto = Constructor.prototype
 
-  blueprint.digest("inherit", function (Super) {
+  blueprint.digest("inherit", function(Super) {
     inherit(Constructor, Super)
   })
-  blueprint.digest("include", function (includes) {
+  blueprint.digest("include", function(includes) {
     include(Constructor, includes)
   })
-  blueprint.digest("augment", function (augments) {
+  blueprint.digest("augment", function(augments) {
     augment(Constructor, augments)
   })
-  blueprint.digest("prototype", function (proto) {
-    extend(Constructor, proto)
+  blueprint.digest("prototype", function(prototype) {
+    extendPrototype(Constructor, prototype)
   })
   if (blueprint.parent) {
     extendObject(Constructor, blueprint.parent.get("static"))
   }
-  blueprint.digest("static", function (methods) {
+  blueprint.digest("static", function(methods) {
     extendObject(Constructor, methods)
   })
-  blueprint.digest("accessor", function( name, access ){
-    if( !access ) return
-    if( typeof access == "function" ){
+  blueprint.digest("accessor", function(name, access) {
+    if (!access) return
+    if (typeof access == "function") {
       define.getter(proto, name, access)
     }
-    else if( typeof access["get"] == "function" && typeof access["set"] == "function" ){
+    else if (typeof access["get"] == "function" && typeof access["set"] == "function") {
       define.accessor(proto, name, access["get"], access["set"])
     }
-    else if( typeof access["get"] == "function" ){
+    else if (typeof access["get"] == "function") {
       define.getter(proto, name, access["get"])
     }
-    else if( typeof access["set"] == "function" ){
+    else if (typeof access["set"] == "function") {
       define.getter(proto, name, access["set"])
     }
   }, true)
@@ -880,131 +1205,97 @@ Factory.prototype.digest = function(  ){
 
 Factory.prototype.industry = []
 
-Factory.prototype.findFactory = function( Constructor ){
-  var ret = null
-  this.industry.some(function (factory) {
-    return factory.Constructor === Constructor && (ret = factory)
-  })
-  return ret
-}
+//Factory.prototype.findFactory = function(Constructor) {
+//  var ret = null
+//  this.industry.some(function(factory) {
+//    return factory.Constructor === Constructor && (ret = factory)
+//  })
+//  return ret
+//}
 
-},{"./Blueprint":13,"./augment":19,"./extend":20,"./include":21,"./inherit":23,"matchbox-util/object/define":30,"matchbox-util/object/extend":31}],17:[function(require,module,exports){
-var inherit = require("./inherit")
+},{"./Blueprint":25,"backyard/function/augment":2,"backyard/function/extend":3,"backyard/function/include":4,"backyard/function/inherit":5,"backyard/object/define":9,"backyard/object/extend":10}],29:[function(require,module,exports){
+var extend = require("backyard/object/extend")
+var defaults = require("backyard/object/defaults")
+var inherit = require("backyard/function/inherit")
+
 var Extension = require("./Extension")
 
 module.exports = InstanceExtension
 
-function InstanceExtension (initialize) {
-  Extension.call(this, {
+function InstanceExtension(options, initialize) {
+  if (!initialize) {
+    initialize = options
+    options = {}
+  }
+  options = defaults(options, {
+    loop: true
+  })
+  extend(options, {
     type: "instance",
     inherit: true,
     initialize: initialize
   })
+  Extension.call(this, options)
 }
 
 inherit(InstanceExtension, Extension)
 
-},{"./Extension":15,"./inherit":23}],18:[function(require,module,exports){
-var inherit = require("./inherit")
+},{"./Extension":27,"backyard/function/inherit":5,"backyard/object/defaults":8,"backyard/object/extend":10}],30:[function(require,module,exports){
+var extend = require("backyard/object/extend")
+var defaults = require("backyard/object/defaults")
+var inherit = require("backyard/function/inherit")
+
 var Extension = require("./Extension")
 
 module.exports = PrototypeExtension
 
-function PrototypeExtension (initialize) {
-  Extension.call(this, {
+function PrototypeExtension(options, initialize) {
+  if (!initialize) {
+    initialize = options
+    options = {}
+  }
+  options = defaults(options, {
+    loop: true
+  })
+  extend(options, {
     type: "prototype",
     inherit: false,
     initialize: initialize
   })
+  Extension.call(this, options)
 }
 
 inherit(PrototypeExtension, Extension)
 
-},{"./Extension":15,"./inherit":23}],19:[function(require,module,exports){
-module.exports = function augment (Class, mixin) {
-  if (Array.isArray(mixin)) {
-    mixin.forEach(function (mixin) {
-      if (typeof mixin == "function") {
-        mixin.call(Class.prototype)
-      }
-    })
-  }
-  else {
-    if (typeof mixin == "function") {
-      mixin.call(Class.prototype)
-    }
-  }
-
-  return Class
-}
-
-},{}],20:[function(require,module,exports){
-module.exports = function extend (Class, prototype) {
-  Object.getOwnPropertyNames(prototype).forEach(function (name) {
-    if (name !== "constructor" ) {
-      var descriptor = Object.getOwnPropertyDescriptor(prototype, name)
-      Object.defineProperty(Class.prototype, name, descriptor)
-    }
-  })
-
-  return Class
-}
-
-},{}],21:[function(require,module,exports){
-var extend = require("./extend")
-
-module.exports = function include (Class, Other) {
-  if (Array.isArray(Other)) {
-    Other.forEach(function (Other) {
-      if (typeof Other == "function") {
-        extend(Class, Other.prototype)
-      }
-      else if (typeof Other == "object") {
-        extend(Class, Other)
-      }
-    })
-  }
-  else {
-    if (typeof Other == "function") {
-      extend(Class, Other.prototype)
-    }
-    else if (typeof Other == "object") {
-      extend(Class, Other)
-    }
-  }
-
-  return Class
-}
-
-},{"./extend":20}],22:[function(require,module,exports){
-var Factory = require("./Factory")
-
-module.exports = factory
-
-factory.CacheExtension = require("./CacheExtension")
-factory.InstanceExtension = require("./InstanceExtension")
-factory.PrototypeExtension = require("./PrototypeExtension")
-
-function factory( blueprint ){
-  return new Factory(blueprint).assemble()
-}
-
-},{"./CacheExtension":14,"./Factory":16,"./InstanceExtension":17,"./PrototypeExtension":18}],23:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],24:[function(require,module,exports){
+},{"./Extension":27,"backyard/function/inherit":5,"backyard/object/defaults":8,"backyard/object/extend":10}],31:[function(require,module,exports){
 module.exports = Channel
 
-function Channel( name ){
+/**
+ * Create a channel
+ *
+ * @extends Array
+ * @constructor Channel
+ * @param {String} name
+ * */
+function Channel(name) {
   this.name = name || ""
 }
 
 Channel.prototype = []
 Channel.prototype.constructor = Channel
 
-Channel.prototype.publish = Channel.prototype.broadcast = function(  ){
+/**
+ * Invoke listeners with the given arguments.
+ * Listeners are called in the order they were registered.
+ * If a listener returns anything it breaks the loop and returns that value.
+ *
+ * @alias broadcast
+ * @return {boolean|*}
+ * */
+Channel.prototype.publish = function() {
   var listeners = this.slice()
   var l = listeners.length
-  if( !l ){
+  if (!l) {
     return false
   }
 
@@ -1012,37 +1303,59 @@ Channel.prototype.publish = Channel.prototype.broadcast = function(  ){
   var i = -1
   var listener
 
-  while( ++i < l ){
+  while (++i < l) {
     listener = listeners[i]
-    if( listener.proxy ) listener = listener.proxy
+    if (listener.proxy) listener = listener.proxy
     err = listener.apply(null, arguments)
-    if( err != null ) return err
+    if (err != null) return err
   }
 
   return false
 }
-Channel.prototype.subscribe = function( listener ){
-  if( typeof listener != "function" ){
+Channel.prototype.broadcast = Channel.prototype.publish
+
+/**
+ * Add a listener to this channel.
+ *
+ * @param {Function} listener
+ * @return {Channel} this
+ * */
+Channel.prototype.subscribe = function(listener) {
+  if (typeof listener != "function") {
     console.warn("Listener is not a function", listener)
     return this
   }
 
-  if( !this.isSubscribed(listener) ) {
+  if (!this.isSubscribed(listener)) {
     this.push(listener)
   }
 
   return this
 }
-Channel.prototype.unsubscribe = function( listener ){
+
+/**
+ * Remove a listener from the channel
+ *
+ * @param {Function} listener
+ * @return {Channel} this
+ * */
+Channel.prototype.unsubscribe = function(listener) {
   var i = this.indexOf(listener)
-  if( ~i ) this.splice(i, 1)
+  if (~i) this.splice(i, 1)
   return this
 }
-Channel.prototype.peek = function( listener ){
+
+/**
+ * Register a listener that will be called only once.
+ *
+ * @param {Function} listener
+ * @return {Channel} this
+ * */
+Channel.prototype.peek = function(listener) {
   var channel = this
 
   // piggyback on the listener
-  listener.proxy = function proxy(  ){
+  listener.proxy = function proxy() {
     var ret = listener.apply(null, arguments)
     channel.unsubscribe(listener)
     return ret
@@ -1051,274 +1364,194 @@ Channel.prototype.peek = function( listener ){
 
   return this
 }
-Channel.prototype.isSubscribed = function( listener ){
+
+/**
+ * Check if a function is registered as a listener on the channel.
+ *
+ * @param {Function} listener
+ * @return {boolean}
+ * */
+Channel.prototype.isSubscribed = function(listener) {
   return !!(listener && ~this.indexOf(listener))
 }
-Channel.prototype.hasSubscribers = function(  ){
+
+/**
+ * Returns how many listeners are registered on the channel.
+ *
+ * @return {boolean}
+ * */
+Channel.prototype.hasSubscribers = function() {
   return this.length > 0
 }
-Channel.prototype.empty = function(){
+
+/**
+ * Clears all listeners from the channel.
+ *
+ * @return {Channel} this
+ * */
+Channel.prototype.empty = function() {
   this.splice(0)
   return this
 }
 
-},{}],25:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 var Channel = require("./Channel")
 
 module.exports = Radio
 
-function Radio(  ){
-  this._channels = []
+/**
+ * @constructor Radio
+ * @member {Array} channels
+ * */
+function Radio() {
+  this.channels = []
 }
 
 /**
  * Create a channel if it doesn't exist already
  * and return the channel.
+ *
+ * @param {String} channel
+ * @return {Channel}
  * */
-Radio.prototype.channel = function( channel ){
-  return this._channels[channel]
-      || (this._channels[channel] = new Channel(channel))
+Radio.prototype.channel = function(channel) {
+  return this.channels[channel]
+      || (this.channels[channel] = new Channel(channel))
 }
+
 /**
  * Check if a channel exists.
+ *
+ * @param {Channel|String} channel
+ * @return {boolean}
  * */
-Radio.prototype.channelExists = function( channel ){
+Radio.prototype.channelExists = function(channel) {
   return !!channel && (typeof channel == "string"
-          ? this._channels.hasOwnProperty(channel)
-          : this._channels.hasOwnProperty(channel.name))
+          ? this.channels.hasOwnProperty(channel)
+          : this.channels.hasOwnProperty(channel.name))
 }
+
 /**
  * Delete a channel.
+ *
+ * @param {Channel|String} channel
+ * @return {boolean}
  * */
-Radio.prototype.deleteChannel = function( channel ){
-  if( channel instanceof Channel ){
-    return delete this._channels[channel.name]
+Radio.prototype.deleteChannel = function(channel) {
+  if (channel instanceof Channel) {
+    return delete this.channels[channel.name]
   }
-  return delete this._channels[channel]
+  return delete this.channels[channel]
 }
+
 /**
  * Check if a channel has any subscribers.
  * If the channel doesn't exists it's `false`.
+ *
+ * @param {Channel|String} channel
+ * @return {boolean}
  * */
-Radio.prototype.hasSubscribers = function( channel ){
+Radio.prototype.hasSubscribers = function(channel) {
   return this.channelExists(channel) && this.channel(channel).hasSubscribers()
 }
+
 /**
  * Check if a listener is subscribed to a channel.
  * If the channel doesn't exists it's `false`.
+ *
+ * @param {Channel|String} channel
+ * @param {Function} listener
+ * @return {boolean}
  * */
-Radio.prototype.isSubscribed = function( channel, listener ){
+Radio.prototype.isSubscribed = function(channel, listener) {
   return this.channelExists(channel) && this.channel(channel).isSubscribed(listener)
 }
+
 /**
  * Send arguments on a channel.
  * If the channel doesn't exists nothing happens.
+ *
+ * @alias broadcast
+ * @param {Channel|String} channel
+ * @return {*}
  * */
-Radio.prototype.publish = Radio.prototype.broadcast = function( channel ){
-  if( this.channelExists(channel) ){
+Radio.prototype.publish = function(channel) {
+  if (this.channelExists(channel)) {
     channel = this.channel(channel)
     var args = [].slice.call(arguments, 1)
     return channel.broadcast.apply(channel, args)
   }
   return false
 }
+Radio.prototype.broadcast = Radio.prototype.publish
+
 /**
  * Subscribe to a channel with a listener.
  * It also creates the channel if it doesn't exists yet.
+ *
+ * @param {Channel|String} channel
+ * @param {Function} listener
+ * @return {Radio} this
  * */
-Radio.prototype.subscribe = function( channel, listener ){
+Radio.prototype.subscribe = function(channel, listener) {
   this.channel(channel).subscribe(listener)
   return this
 }
+
 /**
  * Unsubscribe a listener from a channel.
  * If the channel doesn't exists nothing happens.
+ *
+ * @param {Channel|String} channel
+ * @param {Function} listener
+ * @return {Radio} this
  * */
-Radio.prototype.unsubscribe = function( channel, listener ){
-  if( this.channelExists(channel) ) {
+Radio.prototype.unsubscribe = function(channel, listener) {
+  if (this.channelExists(channel)) {
     this.channel(channel).unsubscribe(listener)
   }
   return this
 }
+
 /**
  * Subscribe a listener to a channel
  * that unsubscribes after the first broadcast it receives.
  * It also creates the channel if it doesn't exists yet.
+ *
+ * @param {Channel|String} channel
+ * @param {Function} listener
+ * @return {Radio} this
  * */
-Radio.prototype.peek = function( channel, listener ){
+Radio.prototype.peek = function(channel, listener) {
   this.channel(channel).peek(listener)
   return this
 }
+
 /**
  * Empty a channel removing every subscriber it holds,
  * but not deleting the channel itself.
  * If the channel doesn't exists nothing happens.
+ *
+ * @param {Channel|String} channel
+ * @return {Radio} this
  * */
-Radio.prototype.emptyChannel = function( channel ){
-  if( this.channelExists(channel) ) {
+Radio.prototype.emptyChannel = function(channel) {
+  if (this.channelExists(channel)) {
     this.channel(channel).empty()
   }
   return this
 }
 
-},{"./Channel":24}],26:[function(require,module,exports){
+},{"./Channel":31}],33:[function(require,module,exports){
 var Radio = require("./Radio")
 var Channel = require("./Channel")
 
 module.exports = Radio
 module.exports.Channel = Channel
 
-},{"./Channel":24,"./Radio":25}],27:[function(require,module,exports){
-module.exports = Descriptor
-
-var _writable = "_writable"
-var _enumerable = "_enumerable"
-var _configurable = "_configurable"
-
-function Descriptor( writable, enumerable, configurable ){
-  this.value(this, _writable, writable || false)
-  this.value(this, _enumerable, enumerable || false)
-  this.value(this, _configurable, configurable || false)
-
-  this.getter(this, "w", function () { return this.writable })
-  this.getter(this, "writable", function () {
-    return new Descriptor(true, enumerable, configurable)
-  })
-
-  this.getter(this, "e", function () { return this.enumerable })
-  this.getter(this, "enumerable", function () {
-    return new Descriptor(writable, true, configurable)
-  })
-
-  this.getter(this, "c", function () { return this.configurable })
-  this.getter(this, "configurable", function () {
-    return new Descriptor(writable, enumerable, true)
-  })
-}
-
-Descriptor.prototype = {
-  accessor: function( obj, name, getter, setter ){
-    Object.defineProperty(obj, name, {
-      enumerable: this[_enumerable],
-      configurable: this[_configurable],
-      get: getter,
-      set: setter
-    })
-    return this
-  },
-  getter: function( obj, name, fn ){
-    Object.defineProperty(obj, name, {
-      enumerable: this[_enumerable],
-      configurable: this[_configurable],
-      get: fn
-    })
-    return this
-  },
-  setter: function( obj, name, fn ){
-    Object.defineProperty(obj, name, {
-      enumerable: this[_enumerable],
-      configurable: this[_configurable],
-      set: fn
-    })
-    return this
-  },
-  value: function( obj, name, value ){
-    Object.defineProperty(obj, name, {
-      writable: this[_writable],
-      enumerable: this[_enumerable],
-      configurable: this[_configurable],
-      value: value
-    })
-    return this
-  },
-  method: function( obj, name, fn ){
-    Object.defineProperty(obj, name, {
-      writable: this[_writable],
-      enumerable: false,
-      configurable: this[_configurable],
-      value: fn
-    })
-    return this
-  },
-  property: function( obj, name, value ){
-    Object.defineProperty(obj, name, {
-      writable: this[_writable],
-      enumerable: false,
-      configurable: this[_configurable],
-      value: value
-    })
-    return this
-  },
-  constant: function( obj, name, value ){
-    Object.defineProperty(obj, name, {
-      writable: false,
-      enumerable: false,
-      configurable: false,
-      value: value
-    })
-    return this
-  }
-}
-
-},{}],28:[function(require,module,exports){
-var extend = require("./extend")
-
-module.exports = function (obj) {
-  return extend({}, obj)
-}
-
-},{"./extend":31}],29:[function(require,module,exports){
-var copy = require("./copy")
-
-module.exports = function defaults (options, defaults) {
-  if (!options) {
-    return copy(defaults)
-  }
-
-  var obj = copy(options)
-
-  for (var prop in defaults) {
-    if (defaults.hasOwnProperty(prop) && !options.hasOwnProperty(prop)) {
-      obj[prop] = defaults[prop]
-    }
-  }
-
-  return obj
-}
-
-},{"./copy":28}],30:[function(require,module,exports){
-var Descriptor = require("./Descriptor")
-
-module.exports = new Descriptor()
-
-},{"./Descriptor":27}],31:[function(require,module,exports){
-module.exports = function extend( obj, extension ){
-  for( var name in extension ){
-    if( extension.hasOwnProperty(name) ) obj[name] = extension[name]
-  }
-  return obj
-}
-
-},{}],32:[function(require,module,exports){
-module.exports = function( obj, callback ){
-  for( var prop in obj ){
-    if( obj.hasOwnProperty(prop) ){
-      callback(prop, obj[prop], obj)
-    }
-  }
-  return obj
-}
-
-},{}],33:[function(require,module,exports){
-var extend = require("./extend")
-
-module.exports = function( obj, extension ){
-  return extend(extend({}, obj), extension)
-}
-
-},{"./extend":31}],34:[function(require,module,exports){
-var inherit = require("matchbox-factory/inherit")
-var include = require("matchbox-factory/include")
+},{"./Channel":31,"./Radio":32}],34:[function(require,module,exports){
+var inherit = require("backyard/function/inherit")
+var include = require("backyard/function/include")
 var Selector = require("matchbox-dom/Selector")
 var Event = require("./Event")
 var Child = require("./Child")
@@ -1381,7 +1614,7 @@ Action.prototype.unRegisterEvent = function (element) {
   this.event.unRegister(element)
 }
 
-},{"./Child":36,"./Event":38,"matchbox-dom/Selector":4,"matchbox-factory/include":21,"matchbox-factory/inherit":23}],35:[function(require,module,exports){
+},{"./Child":36,"./Event":38,"backyard/function/include":4,"backyard/function/inherit":5,"matchbox-dom/Selector":15}],35:[function(require,module,exports){
 module.exports = ActionInit
 
 function ActionInit (event, target, lookup, handler) {
@@ -1442,7 +1675,7 @@ function ActionInit (event, target, lookup, handler) {
 }
 
 },{}],36:[function(require,module,exports){
-var inherit = require("matchbox-factory/inherit")
+var inherit = require("backyard/function/inherit")
 var Selector = require("matchbox-dom/Selector")
 
 module.exports = Child
@@ -1484,8 +1717,8 @@ Child.prototype.clone = function () {
   return new this.constructor(this)
 }
 
-},{"matchbox-dom/Selector":4,"matchbox-factory/inherit":23}],37:[function(require,module,exports){
-var inherit = require("matchbox-factory/inherit")
+},{"backyard/function/inherit":5,"matchbox-dom/Selector":15}],37:[function(require,module,exports){
+var inherit = require("backyard/function/inherit")
 var ModifierInit = require("./ModifierInit")
 
 module.exports = EnumModifier
@@ -1503,7 +1736,7 @@ function EnumModifier (defaultValue, values, animationDuration) {
 
 inherit(EnumModifier, ModifierInit)
 
-},{"./ModifierInit":41,"matchbox-factory/inherit":23}],38:[function(require,module,exports){
+},{"./ModifierInit":41,"backyard/function/inherit":5}],38:[function(require,module,exports){
 var delegate = require("matchbox-dom/event/delegate")
 var Selector = require("matchbox-dom/Selector")
 var Child = require("./Child")
@@ -1581,7 +1814,7 @@ Event.prototype.unRegister = function (element) {
   }
 }
 
-},{"./Child":36,"matchbox-dom/Selector":4,"matchbox-dom/event/delegate":11}],39:[function(require,module,exports){
+},{"./Child":36,"matchbox-dom/Selector":15,"matchbox-dom/event/delegate":22}],39:[function(require,module,exports){
 module.exports = EventInit
 
 function EventInit (event, target, capture, once, handler) {
@@ -1620,7 +1853,7 @@ function EventInit (event, target, capture, once, handler) {
 
   switch (arguments.length) {
     case 1:
-        event = event || {}
+        event = {type: event}
       break
     case 2:
       event = {
@@ -1812,7 +2045,7 @@ function ModifierInit (options) {
 }
 
 },{}],42:[function(require,module,exports){
-var inherit = require("matchbox-factory/inherit")
+var inherit = require("backyard/function/inherit")
 var ModifierInit = require("./ModifierInit")
 
 module.exports = SwitchModifier
@@ -1831,18 +2064,19 @@ function SwitchModifier (defaultValue, on, off, animationDuration) {
 
 inherit(SwitchModifier, ModifierInit)
 
-},{"./ModifierInit":41,"matchbox-factory/inherit":23}],43:[function(require,module,exports){
-var define = require("matchbox-util/object/define")
-var defaults = require("matchbox-util/object/defaults")
-var forIn = require("matchbox-util/object/in")
-var factory = require("matchbox-factory")
-var InstanceExtension = require("matchbox-factory/InstanceExtension")
-var CacheExtension = require("matchbox-factory/CacheExtension")
+},{"./ModifierInit":41,"backyard/function/inherit":5}],43:[function(require,module,exports){
+var define = require("backyard/object/define")
+var defaults = require("backyard/object/defaults")
+var forIn = require("backyard/object/in")
+var factory = require("offspring")
+var InstanceExtension = factory.InstanceExtension
+var CacheExtension = factory.CacheExtension
 var DomData = require("matchbox-dom/Data")
 var domData = require("matchbox-dom/data")
 var Selector = require("matchbox-dom/Selector")
-var Radio = require("matchbox-radio")
 var Fragment = require("matchbox-dom/Fragment")
+var Radio = require("stations")
+
 var EventInit = require("./EventInit")
 var ActionInit = require("./ActionInit")
 var ModifierInit = require("./ModifierInit")
@@ -2133,5 +2367,5 @@ var View = module.exports = factory({
   }
 })
 
-},{"./Action":34,"./ActionInit":35,"./Child":36,"./Event":38,"./EventInit":39,"./Modifier":40,"./ModifierInit":41,"matchbox-dom/Data":2,"matchbox-dom/Fragment":3,"matchbox-dom/Selector":4,"matchbox-dom/data":10,"matchbox-factory":22,"matchbox-factory/CacheExtension":14,"matchbox-factory/InstanceExtension":17,"matchbox-radio":26,"matchbox-util/object/defaults":29,"matchbox-util/object/define":30,"matchbox-util/object/in":32}]},{},[1])(1)
+},{"./Action":34,"./ActionInit":35,"./Child":36,"./Event":38,"./EventInit":39,"./Modifier":40,"./ModifierInit":41,"backyard/object/defaults":8,"backyard/object/define":9,"backyard/object/in":11,"matchbox-dom/Data":13,"matchbox-dom/Fragment":14,"matchbox-dom/Selector":15,"matchbox-dom/data":21,"offspring":24,"stations":33}]},{},[1])(1)
 });

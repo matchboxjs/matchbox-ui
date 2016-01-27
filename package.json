@@ -4,9 +4,9 @@
   "description": "Matchbox ui toolkit",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha",
-    "build-standalone": "browserify index.js --standalone matchboxUi -o matchbox-ui.js",
-    "build-debug": "browserify index.js --standalone matchboxUi --debug -o matchbox-ui.debug.js",
+    "test": "ELECTRON_PATH=./node_modules/.bin/electron ./node_modules/.bin/electron-mocha ./test",
+    "build-standalone": "browserify index.js --standalone matchboxUi -o build/matchbox-ui.js",
+    "build-debug": "browserify index.js --standalone matchboxUi --debug -o build/matchbox-ui.debug.js",
     "build": "npm run build-standalone && npm run build-debug"
   },
   "repository": {
@@ -25,14 +25,16 @@
   },
   "homepage": "https://github.com/matchboxjs/matchbox-ui#readme",
   "dependencies": {
+    "backyard": "^0.1.0",
     "matchbox-dom": "^0.6.4",
-    "matchbox-factory": "^0.2.0",
-    "matchbox-radio": "^1.0.0",
-    "matchbox-util": "^0.4.1"
+    "offspring": "^0.4.0",
+    "stations": "^1.0.0"
   },
   "devDependencies": {
     "browserify": "^12.0.0",
     "chai": "^3.4.0",
+    "electron-mocha": "^0.8.0",
+    "electron-prebuilt": "^0.36.5",
     "mocha": "^2.3.3"
   }
 }

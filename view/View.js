@@ -1,14 +1,15 @@
-var define = require("matchbox-util/object/define")
-var defaults = require("matchbox-util/object/defaults")
-var forIn = require("matchbox-util/object/in")
-var factory = require("matchbox-factory")
-var InstanceExtension = require("matchbox-factory/InstanceExtension")
-var CacheExtension = require("matchbox-factory/CacheExtension")
+var define = require("backyard/object/define")
+var defaults = require("backyard/object/defaults")
+var forIn = require("backyard/object/in")
+var factory = require("offspring")
+var InstanceExtension = factory.InstanceExtension
+var CacheExtension = factory.CacheExtension
 var DomData = require("matchbox-dom/Data")
 var domData = require("matchbox-dom/data")
 var Selector = require("matchbox-dom/Selector")
-var Radio = require("matchbox-radio")
 var Fragment = require("matchbox-dom/Fragment")
+var Radio = require("stations")
+
 var EventInit = require("./EventInit")
 var ActionInit = require("./ActionInit")
 var ModifierInit = require("./ModifierInit")
@@ -63,11 +64,11 @@ var View = module.exports = factory({
 
       return data
     }),
-    modifiers: new InstanceExtension(function (view, name, modifInit) {
-      if (!(modifInit instanceof ModifierInit)) {
-        modifInit = new ModifierInit(modifInit)
+    modifiers: new InstanceExtension(function (view, name, init) {
+      if (!(init instanceof ModifierInit)) {
+        init = new ModifierInit(init)
       }
-      view._modifiers[name] = new Modifier(modifInit)
+      view._modifiers[name] = new Modifier(init)
     }),
     children: new CacheExtension(function(prototype, name, child){
       if (!(child instanceof Selector)) {

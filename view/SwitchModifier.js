@@ -1,4 +1,4 @@
-var inherit = require("matchbox-factory/inherit")
+var inherit = require("backyard/function/inherit")
 var ModifierInit = require("./ModifierInit")
 
 module.exports = SwitchModifier

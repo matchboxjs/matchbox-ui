@@ -36,7 +36,7 @@ function EventInit (event, target, capture, once, handler) {
 
   switch (arguments.length) {
     case 1:
-        event = event || {}
+        event = {type: event}
       break
     case 2:
       event = {
