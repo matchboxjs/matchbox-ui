@@ -54,6 +54,47 @@ describe("View", function() {
     done()
   })
 
+  describe("viewName", function() {
+    test("not provided", function(element, done) {
+      var CustomView = View.extend({})
+      assert.equal(CustomView.prototype.viewName, "")
+      var view = new CustomView(element)
+      assert.equal(view.viewName, "")
+      done()
+    })
+    test("provided", function(element, done) {
+      var CustomView = View.extend({
+        viewName: "test"
+      })
+      assert.equal(CustomView.prototype.viewName, "test")
+      var view = new CustomView(element)
+      assert.equal(view.viewName, "test")
+      done()
+    })
+    test("inherited", function(element, done) {
+      var CustomView = View.extend({
+        viewName: "test"
+      })
+      var ExtendedView = CustomView.extend({})
+      assert.equal(ExtendedView.prototype.viewName, "test")
+      var view = new ExtendedView(element)
+      assert.equal(view.viewName, "test")
+      done()
+    })
+    test("overridden", function(element, done) {
+      var CustomView = View.extend({
+        viewName: "test"
+      })
+      var ExtendedView = CustomView.extend({
+        viewName: "override"
+      })
+      assert.equal(ExtendedView.prototype.viewName, "override")
+      var view = new ExtendedView(element)
+      assert.equal(view.viewName, "override")
+      done()
+    })
+  })
+
   describe("layouts", function() {
     test("call test", function(element, done) {
       var called = false
@@ -156,15 +197,13 @@ describe("View", function() {
       child1.appendChild(child2)
       child2.dataset.action = "test:test"
       var view = new (View.extend({
+        viewName: "test",
         actions: {
           test: new uiview.Action("click", [":child1"], function(e, arg1, arg2) {
             assert.equal(child1, arg1)
             assert.equal(child2, arg2)
             done()
           })
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       dispatch(child2, "click")
@@ -176,6 +215,7 @@ describe("View", function() {
       child1.appendChild(child2)
       child2.dataset.action = "test:test"
       var view = new (View.extend({
+        viewName: "test",
         children: {
           child1: uiview.Child({autoselect: true, Constructor: View})
         },
@@ -187,9 +227,6 @@ describe("View", function() {
             assert.equal(child2, arg2)
             done()
           })
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       dispatch(child2, "click")
@@ -199,6 +236,7 @@ describe("View", function() {
       child.dataset.action = "test:test"
       element.appendChild(child)
       var view = new (View.extend({
+        viewName: "test",
         children: {
           child1: uiview.Child({autoselect: true, Constructor: View})
         },
@@ -211,9 +249,6 @@ describe("View", function() {
               done()
             }
           })
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       dispatch(child, "click")
@@ -343,11 +378,9 @@ describe("View", function() {
       var child = createViewElement("test:child")
       element.appendChild(child)
       var el = new (View.extend({
+        viewName: "test",
         children: {
           child: new uiview.Child()
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       assert.equal(el.findChild("child"), child)
@@ -355,11 +388,9 @@ describe("View", function() {
     })
     test("nonexistent child", function(element, done) {
       var el = new (View.extend({
+        viewName: "test",
         children: {
           child: new uiview.Child()
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       assert.isNull(el.findChild("child"))
@@ -370,11 +401,9 @@ describe("View", function() {
       var child = createViewElement("test:other-child")
       element.appendChild(child)
       var el = new (View.extend({
+        viewName: "test",
         children: {
           child: new uiview.Child("other-child")
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       assert.equal(el.findChild("child"), child)
@@ -386,13 +415,11 @@ describe("View", function() {
       element.appendChild(child1)
       element.appendChild(child2)
       var el = new (View.extend({
+        viewName: "test",
         children: {
           child: new uiview.Child({
             multiple: true
           })
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       assert.isNotNull(el.findChild("child"))
@@ -406,11 +433,9 @@ describe("View", function() {
       element.appendChild(child)
       var ChildElement = View.extend({})
       var el = new (View.extend({
+        viewName: "test",
         children: {
           child: new uiview.Child(ChildElement)
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(element)
       assert.instanceOf(el.findChild("child"), ChildElement)
@@ -427,13 +452,11 @@ describe("View", function() {
       el1child.appendChild(el2)
 
       var view = new (View.extend({
+        viewName: "test",
         children: {
           child: new uiview.Child({
             multiple: true
           })
-        },
-        prototype: {
-          viewName: "test"
         }
       }))(el1)
 
@@ -443,9 +466,7 @@ describe("View", function() {
     })
     test("find element", function(element, done) {
       var view = new (View.extend({
-        prototype: {
-          viewName: "test"
-        }
+        viewName: "test"
       }))()
       view.setupElement()
       assert.equal(view.element, element)

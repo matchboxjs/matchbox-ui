@@ -5,6 +5,7 @@ var Radio = require("stations")
 var factory = require("offspring")
 var InstanceExtension = factory.InstanceExtension
 var CacheExtension = factory.CacheExtension
+var PrototypeExtension = factory.PrototypeExtension
 
 var domData = require("../dom/data")
 var DomData = require("../dom/data/Data")
@@ -22,6 +23,9 @@ module.exports = factory({
   include: [Radio],
 
   extensions: {
+    viewName: new PrototypeExtension({loop: false}, function(prototype, property, value) {
+      prototype[property] = value
+    }),
     layouts: new CacheExtension(),
     models: new CacheExtension(),
     events: new InstanceExtension(function(view, name, init) {
