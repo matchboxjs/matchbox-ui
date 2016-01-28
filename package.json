@@ -4,7 +4,7 @@
   "description": "Matchbox ui toolkit",
   "main": "index.js",
   "scripts": {
-    "test": "ELECTRON_PATH=./node_modules/.bin/electron ./node_modules/.bin/electron-mocha ./test",
+    "test": "ELECTRON_PATH=./node_modules/.bin/electron ./node_modules/.bin/electron-mocha --renderer --recursive --bail --ui bdd ./test/",
     "build-standalone": "browserify index.js --standalone matchboxUi -o build/matchbox-ui.js",
     "build-debug": "browserify index.js --standalone matchboxUi --debug -o build/matchbox-ui.debug.js",
     "build": "npm run build-standalone && npm run build-debug"
@@ -31,7 +31,6 @@
     "stations": "^1.0.0"
   },
   "devDependencies": {
-    "browserify": "^12.0.0",
     "chai": "^3.4.0",
     "electron-mocha": "^0.8.0",
     "electron-prebuilt": "^0.36.5",

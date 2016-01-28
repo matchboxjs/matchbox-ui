@@ -1,4 +1,4 @@
-matchbox-ui
+matchbox-ui [![Build Status](https://travis-ci.org/matchboxjs/matchbox-ui.svg)](https://travis-ci.org/matchboxjs/matchbox-ui)
 ===========
 
 [![npm](https://img.shields.io/npm/v/matchbox-ui.svg)](https://www.npmjs.com/package/matchbox-ui)
