@@ -5,7 +5,7 @@ module.exports = Child
 
 Child.DEFAULT_ATTRIBUTE = "data-view"
 
-function Child (child) {
+function Child(child) {
   child = child || {}
   if (!(this instanceof Child)) {
     return new Child(child)
@@ -31,11 +31,11 @@ function Child (child) {
 
 inherit(Child, Selector)
 
-Child.prototype.initialize = function (property, childName) {
+Child.prototype.initialize = function(property, childName) {
   this.property = property
   this.name = childName
 }
 
-Child.prototype.clone = function () {
+Child.prototype.clone = function() {
   return new this.constructor(this)
 }

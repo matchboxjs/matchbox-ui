@@ -1,6 +1,6 @@
 module.exports = ActionInit
 
-function ActionInit (event, target, lookup, handler) {
+function ActionInit(event, target, lookup, handler) {
   if (!(this instanceof ActionInit)) {
     switch (arguments.length) {
       case 1:

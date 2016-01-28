@@ -4,7 +4,7 @@ var Child = require("./Child")
 
 module.exports = Event
 
-function Event (eventInit) {
+function Event(eventInit) {
   this.type = eventInit.type
   this.target = eventInit.target
   this.once = !!eventInit.once
@@ -14,13 +14,13 @@ function Event (eventInit) {
   this.proxy = this.handler
 }
 
-Event.prototype.initialize = function (view, viewName) {
+Event.prototype.initialize = function(view, viewName) {
   if (this.target) {
     if (!Array.isArray(this.target)) {
       this.target = [this.target]
     }
 
-    this.target = this.target.map(function (selector) {
+    this.target = this.target.map(function(selector) {
       if (!(typeof selector == "string")) {
         return selector
       }
@@ -35,7 +35,7 @@ Event.prototype.initialize = function (view, viewName) {
   }
 
   if (!this.transform) {
-    this.transform = function (view, delegateSelector, delegateElement) {
+    this.transform = function(view, delegateSelector, delegateElement) {
       var child
       if (delegateSelector instanceof Child) {
         child = view.getChildView(delegateSelector.property, delegateElement)
@@ -46,7 +46,7 @@ Event.prototype.initialize = function (view, viewName) {
   }
 }
 
-Event.prototype.register = function (element, context) {
+Event.prototype.register = function(element, context) {
   if (this.target) {
     this.proxy = delegate({
       element: element,
@@ -66,7 +66,7 @@ Event.prototype.register = function (element, context) {
   }
 }
 
-Event.prototype.unRegister = function (element) {
+Event.prototype.unRegister = function(element) {
   if (this.proxy) {
     element.removeEventListener(this.type, this.proxy, this.capture)
   }

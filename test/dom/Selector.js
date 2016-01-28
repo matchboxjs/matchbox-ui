@@ -3,8 +3,8 @@ var ui = require("../../index")
 
 var dom = ui.dom
 
-function test (name, id, className, attributes, fn) {
-  it(name, function () {
+function test(name, id, className, attributes, fn) {
+  it(name, function() {
     var element = createElement("div", id, className, attributes)
     document.body.appendChild(element)
     fn.call(this, element)
@@ -12,7 +12,7 @@ function test (name, id, className, attributes, fn) {
   })
 }
 
-function createElement (tag, id, className, attributes) {
+function createElement(tag, id, className, attributes) {
   var element = document.createElement(tag)
   element.id = id || ""
   element.className = className || ""
@@ -22,8 +22,8 @@ function createElement (tag, id, className, attributes) {
   return element
 }
 
-describe("Selector", function () {
-  it("basic", function () {
+describe("Selector", function() {
+  it("basic", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test",
@@ -31,21 +31,21 @@ describe("Selector", function () {
     })
     assert.equal(selector.toString(), '[data-test="test"]')
   })
-  it("id", function () {
+  it("id", function() {
     var selector = new dom.Selector({
       attribute: "id",
       value: "test"
     })
     assert.equal(selector.toString(), '#test')
   })
-  it("class", function () {
+  it("class", function() {
     var selector = new dom.Selector({
       attribute: "class",
       value: "test"
     })
     assert.equal(selector.toString(), '.test')
   })
-  it("element", function () {
+  it("element", function() {
     var selector = new dom.Selector({
       attribute: "",
       value: "test"
@@ -57,7 +57,7 @@ describe("Selector", function () {
     })
     assert.equal(selector.toString(), 'test')
   })
-  it("extra", function () {
+  it("extra", function() {
     var selector = new dom.Selector({
       attribute: "",
       value: "",
@@ -76,7 +76,7 @@ describe("Selector", function () {
     })
     assert.equal(selector.toString(), 'HELLO')
   })
-  it("value", function () {
+  it("value", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test"
@@ -90,11 +90,11 @@ describe("Selector", function () {
     assert.equal(selector.equal(0).toString(), '[data-test="0"]')
     assert.equal(selector.equal("0").toString(), '[data-test="0"]')
   })
-  it("clone", function () {
+  it("clone", function() {
     var selector = new dom.Selector()
     assert.equal(selector.toString(), selector.clone().toString())
   })
-  it("combine", function () {
+  it("combine", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test",
@@ -114,7 +114,7 @@ describe("Selector", function () {
     newSelector = selector.combine(otherSelector)
     assert.equal(newSelector.toString(), '[data-test="test"][data-test="test"]')
   })
-  it("equal", function () {
+  it("equal", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test",
@@ -127,7 +127,7 @@ describe("Selector", function () {
     assert.equal(newSelector.operator, "=")
     assert.equal(newSelector.value, "TEST")
   })
-  it("contains", function () {
+  it("contains", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test",
@@ -140,7 +140,7 @@ describe("Selector", function () {
     assert.equal(newSelector.operator, "~=")
     assert.equal(newSelector.value, "TEST")
   })
-  it("prefix", function () {
+  it("prefix", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test",
@@ -153,7 +153,7 @@ describe("Selector", function () {
     assert.equal(newSelector.value, "TEST:test")
     assert.equal(newSelector.prefix("TEST", "/").value, "TEST/TEST:test")
   })
-  it("nest", function () {
+  it("nest", function() {
     var selector = new dom.Selector({
       attribute: "data-test",
       value: "test",
@@ -166,7 +166,7 @@ describe("Selector", function () {
     assert.equal(newSelector.value, "test:TEST")
     assert.equal(newSelector.nest("TEST", "/").value, "test:TEST/TEST")
   })
-  it("from", function () {
+  it("from", function() {
     var selector = new dom.Selector({})
 
     var newSelector = selector.from(null)
@@ -174,7 +174,7 @@ describe("Selector", function () {
     assert.notEqual(selector, newSelector)
     assert.isNull(newSelector.element)
   })
-  it("unwanted parent", function () {
+  it("unwanted parent", function() {
     var el1 = createElement("div", "", "parent")
     var el1child = createElement("div", "", "child")
     el1.appendChild(el1child)
@@ -207,7 +207,7 @@ describe("Selector", function () {
     assert.equal(children1[0], el1child)
   })
 
-  test("select", "test", "", {}, function (element) {
+  test("select", "test", "", {}, function(element) {
     var selector = new dom.Selector({
       attribute: "id",
       value: "test"
@@ -215,7 +215,7 @@ describe("Selector", function () {
     assert.equal(selector.select(document.body), element)
   })
 
-  it("select null", function () {
+  it("select null", function() {
     var selector = new dom.Selector({
       attribute: "asd",
       value: "qwe"
@@ -223,7 +223,7 @@ describe("Selector", function () {
     assert.isNull(selector.select(document.body))
   })
 
-  test("selectAll", "test", "", {}, function (element) {
+  test("selectAll", "test", "", {}, function(element) {
     var child1 = element.appendChild(createElement("div", "", "test"))
     var child2 = element.appendChild(createElement("div", "", "test"))
     var selector = new dom.Selector({
@@ -236,7 +236,7 @@ describe("Selector", function () {
     assert.equal(selector.selectAll(element)[1], child2)
   })
 
-  it("selectAll empty", function () {
+  it("selectAll empty", function() {
     var selector = new dom.Selector({
       attribute: "asd",
       value: "qwe"
@@ -245,7 +245,7 @@ describe("Selector", function () {
     assert.lengthOf(selector.selectAll(document.body), 0)
   })
 
-  test("node", "test", "", {}, function (element) {
+  test("node", "test", "", {}, function(element) {
     var selector = new dom.Selector({
       attribute: "id",
       value: "test"
@@ -253,7 +253,7 @@ describe("Selector", function () {
     assert.equal(selector.from(document.body).node(), element)
   })
 
-  test("nodeList", "test", "", {}, function (element) {
+  test("nodeList", "test", "", {}, function(element) {
     var child1 = element.appendChild(createElement("div", "", "test"))
     var child2 = element.appendChild(createElement("div", "", "test"))
     var selector = new dom.Selector({
@@ -266,14 +266,14 @@ describe("Selector", function () {
     assert.equal(selector.from(element).nodeList()[1], child2)
   })
 
-  test("transformed nodeList", "test", "", {}, function (element) {
+  test("transformed nodeList", "test", "", {}, function(element) {
     element.appendChild(createElement("div", "", "test"))
     element.appendChild(createElement("div", "", "test"))
     var selector = new dom.Selector({
       attribute: "class",
       value: "test"
     })
-    var result = selector.from(element).nodeList(function (element, i) {
+    var result = selector.from(element).nodeList(function(element, i) {
       return i
     })
     assert.isArray(result)
@@ -282,11 +282,13 @@ describe("Selector", function () {
     assert.equal(result[1], 1)
   })
 
-  test("construct", "", "", {}, function (element) {
+  test("construct", "", "", {}, function(element) {
     var child = element.appendChild(createElement("div", "", "test"))
-    function Test (element) {
+
+    function Test(element) {
       this.element = element
     }
+
     var selector = new dom.Selector({
       Constructor: Test,
       attribute: "class",
@@ -297,10 +299,11 @@ describe("Selector", function () {
     assert.equal(result.element, child)
   })
 
-  test("construct null", "", "", {}, function (element) {
-    function Test (element) {
+  test("construct null", "", "", {}, function(element) {
+    function Test(element) {
       this.element = element
     }
+
     var selector = new dom.Selector({
       Constructor: Test,
       attribute: "class",
@@ -310,12 +313,14 @@ describe("Selector", function () {
     assert.isNull(result)
   })
 
-  test("construct multiple", "", "", {}, function (element) {
+  test("construct multiple", "", "", {}, function(element) {
     var child1 = element.appendChild(createElement("div", "", "test"))
     var child2 = element.appendChild(createElement("div", "", "test"))
-    function Test (element) {
+
+    function Test(element) {
       this.element = element
     }
+
     var selector = new dom.Selector({
       Constructor: Test,
       multiple: true,
@@ -331,10 +336,11 @@ describe("Selector", function () {
     assert.equal(result[1].element, child2)
   })
 
-  test("construct multiple empty", "", "", {}, function (element) {
-    function Test (element) {
+  test("construct multiple empty", "", "", {}, function(element) {
+    function Test(element) {
       this.element = element
     }
+
     var selector = new dom.Selector({
       Constructor: Test,
       multiple: true,

@@ -18,13 +18,13 @@ var Modifier = require("./Modifier")
 var Child = require("./Child")
 var Action = require("./Action")
 
-var View = module.exports = factory({
+module.exports = factory({
   include: [Radio],
 
   extensions: {
     layouts: new CacheExtension(),
     models: new CacheExtension(),
-    events: new InstanceExtension(function (view, name, init) {
+    events: new InstanceExtension(function(view, name, init) {
       var event
       if (!(init instanceof EventInit)) {
         init = new EventInit(init)
@@ -41,7 +41,7 @@ var View = module.exports = factory({
 
       view._events[name] = event
     }),
-    actions: new InstanceExtension(function (view, name, init) {
+    actions: new InstanceExtension(function(view, name, init) {
       if (!(init instanceof ActionInit)) {
         init = new ActionInit(init)
       }
@@ -50,13 +50,13 @@ var View = module.exports = factory({
       action.initialize(name, view.viewName)
 
       if (typeof action.handler == "string" && typeof view[action.handler] == "function") {
-        action.handler = function () {
+        action.handler = function() {
           return view[action.handler].apply(view, arguments)
         }
       }
       view._actions[name] = action
     }),
-    dataset: new CacheExtension(function (prototype, name, data) {
+    dataset: new CacheExtension(function(prototype, name, data) {
       if (!(data instanceof DomData)) {
         data = domData.create(name, data)
       }
@@ -64,13 +64,13 @@ var View = module.exports = factory({
 
       return data
     }),
-    modifiers: new InstanceExtension(function (view, name, init) {
+    modifiers: new InstanceExtension(function(view, name, init) {
       if (!(init instanceof ModifierInit)) {
         init = new ModifierInit(init)
       }
       view._modifiers[name] = new Modifier(init)
     }),
-    children: new CacheExtension(function(prototype, name, child){
+    children: new CacheExtension(function(prototype, name, child) {
       if (!(child instanceof Selector)) {
         child = new Child(child)
       }
@@ -86,7 +86,7 @@ var View = module.exports = factory({
       }
       return child.contains(child.name)
     }),
-    fragments: new CacheExtension(function (prototype, name, fragment) {
+    fragments: new CacheExtension(function(prototype, name, fragment) {
       if (!(fragment instanceof Fragment)) {
         return new Fragment(fragment)
       }
@@ -102,7 +102,7 @@ var View = module.exports = factory({
   fragments: {},
   children: {},
 
-  constructor: function View( element ){
+  constructor: function View(element) {
     Radio.call(this)
     define.value(this, "_events", {})
     define.value(this, "_models", {})
@@ -116,10 +116,10 @@ var View = module.exports = factory({
 
   accessor: {
     element: {
-      get: function () {
+      get: function() {
         return this._element
       },
-      set: function (element) {
+      set: function(element) {
         var previous = this._element
         if (previous == element) {
           return
@@ -129,7 +129,7 @@ var View = module.exports = factory({
       }
     },
     elementSelector: {
-      get: function () {
+      get: function() {
         if (this.viewName) {
           return new Child(this.viewName)
         }
@@ -139,36 +139,36 @@ var View = module.exports = factory({
 
   prototype: {
     viewName: "",
-    onElementChange: function (element, previous) {
+    onElementChange: function(element, previous) {
       var view = this
-      forIn(this._events, function (name, event) {
+      forIn(this._events, function(name, event) {
         if (previous) event.unRegister(previous)
         if (element) event.register(element, view)
       })
-      forIn(this._actions, function (name, action) {
+      forIn(this._actions, function(name, action) {
         if (previous) action.unRegisterEvent(previous)
         if (element) action.registerEvent(element, view)
       })
-      forIn(this._modifiers, function (name, modifier) {
+      forIn(this._modifiers, function(name, modifier) {
         modifier.reset(element, view)
       })
-      forIn(this.dataset, function (name, data) {
+      forIn(this.dataset, function(name, data) {
         if (!data.has(element) && data.default != null) {
           data.set(element, data.default)
         }
       })
-      forIn(this.children, function (name) {
+      forIn(this.children, function(name) {
         var child = view.children[name]
         if (child && child.autoselect) {
           view[name] = view.findChild(name)
         }
       })
-      forIn(this.models, function (name, Constructor) {
+      forIn(this.models, function(name, Constructor) {
         view._models[name] = new Constructor()
       })
     },
-    onLayoutChange: function (layout, previous) {},
-    changeLayout: function( layout ){
+    onLayoutChange: function(layout, previous) {},
+    changeLayout: function(layout) {
       if (this.currentLayout == layout) {
         return Promise.resolve()
       }
@@ -180,14 +180,14 @@ var View = module.exports = factory({
 
       var view = this
       var previous = view.currentLayout
-      return Promise.resolve(previous).then(function () {
+      return Promise.resolve(previous).then(function() {
         return layoutHandler.call(view, previous)
-      }).then(function () {
+      }).then(function() {
         view.currentLayout = layout
         view.onLayoutChange(previous, layout)
       })
     },
-    dispatch: function (type, detail, def) {
+    dispatch: function(type, detail, def) {
       var definition = defaults(def, {
         detail: detail || null,
         view: window,
@@ -196,48 +196,48 @@ var View = module.exports = factory({
       })
       return this.element.dispatchEvent(new window.CustomEvent(type, definition))
     },
-    getData: function (name) {
+    getData: function(name) {
       var data = this.dataset[name]
       if (data) {
         return data.get(this.element)
       }
       return null
     },
-    setData: function (name, value, silent) {
+    setData: function(name, value, silent) {
       var data = this.dataset[name]
       if (data) {
         return data.set(this.element, value, silent)
       }
     },
-    removeData: function (name, silent) {
+    removeData: function(name, silent) {
       var data = this.dataset[name]
       if (data) {
         data.remove(this.element, silent)
       }
     },
-    hasData: function (name) {
+    hasData: function(name) {
       var data = this.dataset[name]
       if (data) {
         return data.has(this.element)
       }
       return false
     },
-    setModifier: function (name, value) {
+    setModifier: function(name, value) {
       if (this._modifiers[name] && this.element) {
         return this._modifiers[name].set(value, this.element, this)
       }
     },
-    getModifier: function (name) {
+    getModifier: function(name) {
       if (this._modifiers[name]) {
         return this._modifiers[name].get()
       }
     },
-    removeModifier: function (name) {
+    removeModifier: function(name) {
       if (this._modifiers[name]) {
         return this._modifiers[name].remove(this.element, this)
       }
     },
-    getModel: function (name) {
+    getModel: function(name) {
       name = name || "default"
       var model = this._models[name]
       if (model == null) {
@@ -246,14 +246,14 @@ var View = module.exports = factory({
 
       return model
     },
-    setModel: function (name, model) {
+    setModel: function(name, model) {
       if (!model) {
         model = name
         name = "default"
       }
       this._models[name] = model
     },
-    setupElement: function (root) {
+    setupElement: function(root) {
       root = root || document.body
       if (root && this.elementSelector) {
         this.element = this.elementSelector.from(root).find()
@@ -261,7 +261,7 @@ var View = module.exports = factory({
 
       return this
     },
-    getChildView: function (childProperty, element) {
+    getChildView: function(childProperty, element) {
       var child = this.children[childProperty]
       var member = this[childProperty]
 
@@ -278,7 +278,7 @@ var View = module.exports = factory({
 
       return member
     },
-    findChild: function (property) {
+    findChild: function(property) {
       var child
       if (typeof property == "string") {
         child = this.children[property]

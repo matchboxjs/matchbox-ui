@@ -3,7 +3,7 @@ var ModifierInit = require("./ModifierInit")
 
 module.exports = EnumModifier
 
-function EnumModifier (defaultValue, values, animationDuration) {
+function EnumModifier(defaultValue, values, animationDuration) {
   if (!(this instanceof EnumModifier)) {
     return new EnumModifier(defaultValue, values, animationDuration)
   }

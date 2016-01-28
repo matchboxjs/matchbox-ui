@@ -1,5 +1,3 @@
-var inherit = require("backyard/function/inherit")
-var include = require("backyard/function/include")
 var Selector = require("../dom/Selector")
 var Event = require("./Event")
 var Child = require("./Child")
@@ -8,19 +6,19 @@ module.exports = Action
 
 Action.DEFAULT_ATTRIBUTE = "data-action"
 
-function Action (actionInit) {
+function Action(actionInit) {
   this.lookup = actionInit.lookup || null
   this.event = new Event(actionInit.eventOptions)
 }
 
-Action.prototype.initialize = function (action, viewName) {
+Action.prototype.initialize = function(action, viewName) {
   var selector = new Selector({attribute: Action.DEFAULT_ATTRIBUTE, value: action})
 
   if (!Array.isArray(this.event.target)) {
     this.event.target = []
   }
 
-  this.event.target = this.event.target.map(function (selector) {
+  this.event.target = this.event.target.map(function(selector) {
     if (!(typeof selector == "string")) {
       return selector
     }
@@ -41,7 +39,7 @@ Action.prototype.initialize = function (action, viewName) {
   }
 
   var lookup = this.lookup
-  this.event.transform = function (view, delegateSelector, delegateElement) {
+  this.event.transform = function(view, delegateSelector, delegateElement) {
     var child
     if (delegateSelector instanceof Child) {
       child = view.getChildView(delegateSelector.name, delegateElement)
@@ -54,10 +52,10 @@ Action.prototype.initialize = function (action, viewName) {
   }
 }
 
-Action.prototype.registerEvent = function (element, context) {
+Action.prototype.registerEvent = function(element, context) {
   this.event.register(element, context)
 }
 
-Action.prototype.unRegisterEvent = function (element) {
+Action.prototype.unRegisterEvent = function(element) {
   this.event.unRegister(element)
 }

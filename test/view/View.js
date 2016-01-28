@@ -1,8 +1,8 @@
 var assert = require("chai").assert
 var ui = require("../../index")
 
-function test (name, fn) {
-  it(name, function (done) {
+function test(name, fn) {
+  it(name, function(done) {
     var element = createViewElement("test")
     document.body.appendChild(element)
     try {
@@ -16,7 +16,7 @@ function test (name, fn) {
   })
 }
 
-function dispatch (element, type) {
+function dispatch(element, type) {
   element.dispatchEvent(new window.CustomEvent(type, {
     detail: null,
     view: window,
@@ -25,7 +25,7 @@ function dispatch (element, type) {
   }))
 }
 
-function createViewElement (name) {
+function createViewElement(name) {
   var element = document.createElement("div")
   element.dataset.view = name
   return element
@@ -35,18 +35,18 @@ var uiview = ui.view
 var View = uiview.View
 var uidata = ui.dom.data
 
-describe("View", function () {
-  it("no arguments", function () {
+describe("View", function() {
+  it("no arguments", function() {
     var view = new View()
     assert.instanceOf(view, View)
   })
-  test("with element argument", function (element, done) {
+  test("with element argument", function(element, done) {
     var view = new View(element)
     assert.instanceOf(view, View)
     assert.equal(view.element, element)
     done()
   })
-  test("CustomView", function (element, done) {
+  test("CustomView", function(element, done) {
     var CustomView = View.extend({})
     var view = new CustomView(element)
     assert.instanceOf(view, View)
@@ -54,19 +54,19 @@ describe("View", function () {
     done()
   })
 
-  describe("layouts", function () {
-    test("call test", function (element, done) {
+  describe("layouts", function() {
+    test("call test", function(element, done) {
       var called = false
       var CustomView = View.extend({
         layouts: {
-          "test": function () {
+          "test": function() {
             called = true
           }
         }
       })
       var view = new CustomView(element)
       assert.equal(view.currentLayout, "")
-      view.changeLayout("test").then(function () {
+      view.changeLayout("test").then(function() {
         assert.equal(view.currentLayout, "test")
         assert.isTrue(called)
         done()
@@ -75,23 +75,23 @@ describe("View", function () {
     })
   })
 
-  describe("events", function () {
-    test("simple event", function (element, done) {
+  describe("events", function() {
+    test("simple event", function(element, done) {
       var view = new (View.extend({
         events: {
-          test: new uiview.Event("click", function () {
+          test: new uiview.Event("click", function() {
             done()
           })
         }
       }))(element)
       dispatch(element, "click")
     })
-    test("targeted event", function (element, done) {
+    test("targeted event", function(element, done) {
       var child = createViewElement("child")
       element.appendChild(child)
       var view = new (View.extend({
         events: {
-          test: new uiview.Event("click", new uiview.Child("child").toString(), function (e, arg1) {
+          test: new uiview.Event("click", new uiview.Child("child").toString(), function(e, arg1) {
             assert.equal(child, arg1)
             done()
           })
@@ -99,14 +99,14 @@ describe("View", function () {
       }))(element)
       dispatch(child, "click")
     })
-    test("multiple targeted event", function (element, done) {
+    test("multiple targeted event", function(element, done) {
       var child1 = createViewElement("child1")
       var child2 = createViewElement("child2")
       element.appendChild(child1)
       child1.appendChild(child2)
       var view = new (View.extend({
         events: {
-          test: new uiview.Event("click", [new uiview.Child("child1").toString(), new uiview.Child("child2").toString()], function (e, arg1, arg2) {
+          test: new uiview.Event("click", [new uiview.Child("child1").toString(), new uiview.Child("child2").toString()], function(e, arg1, arg2) {
             assert.equal(child1, arg1)
             assert.equal(child2, arg2)
             done()
@@ -117,14 +117,14 @@ describe("View", function () {
     })
   })
 
-  describe("Action", function () {
-    test("simple action", function (element, done) {
+  describe("Action", function() {
+    test("simple action", function(element, done) {
       var child = createViewElement("child")
       child.dataset.action = "test"
       element.appendChild(child)
       var view = new (View.extend({
         actions: {
-          test: new uiview.Action("click", function (e, arg1) {
+          test: new uiview.Action("click", function(e, arg1) {
             assert.equal(child, arg1)
             done()
           })
@@ -132,7 +132,7 @@ describe("View", function () {
       }))(element)
       dispatch(child, "click")
     })
-    test("targeted action", function (element, done) {
+    test("targeted action", function(element, done) {
       var child1 = createViewElement("child1")
       var child2 = createViewElement("child2")
       element.appendChild(child1)
@@ -140,7 +140,7 @@ describe("View", function () {
       child2.dataset.action = "test"
       var view = new (View.extend({
         actions: {
-          test: new uiview.Action("click", ["child1"], function (e, arg1, arg2) {
+          test: new uiview.Action("click", ["child1"], function(e, arg1, arg2) {
             assert.equal(child1, arg1)
             assert.equal(child2, arg2)
             done()
@@ -149,7 +149,7 @@ describe("View", function () {
       }))(element)
       dispatch(child2, "click")
     })
-    test("child targeted action", function (element, done) {
+    test("child targeted action", function(element, done) {
       var child1 = createViewElement("test:child1")
       var child2 = createViewElement("test:child2")
       element.appendChild(child1)
@@ -157,7 +157,7 @@ describe("View", function () {
       child2.dataset.action = "test:test"
       var view = new (View.extend({
         actions: {
-          test: new uiview.Action("click", [":child1"], function (e, arg1, arg2) {
+          test: new uiview.Action("click", [":child1"], function(e, arg1, arg2) {
             assert.equal(child1, arg1)
             assert.equal(child2, arg2)
             done()
@@ -169,7 +169,7 @@ describe("View", function () {
       }))(element)
       dispatch(child2, "click")
     })
-    test("View child targeted action", function (element, done) {
+    test("View child targeted action", function(element, done) {
       var child1 = createViewElement("test:child1")
       var child2 = createViewElement("test:child2")
       element.appendChild(child1)
@@ -180,7 +180,7 @@ describe("View", function () {
           child1: uiview.Child({autoselect: true, Constructor: View})
         },
         actions: {
-          test: new uiview.Action("click", [":child1"], function (e, arg1, arg2) {
+          test: new uiview.Action("click", [":child1"], function(e, arg1, arg2) {
             assert.instanceOf(arg1, View)
             assert.equal(this.child1, arg1)
             assert.equal(child1, arg1.element)
@@ -194,7 +194,7 @@ describe("View", function () {
       }))(element)
       dispatch(child2, "click")
     })
-    test("View lookup", function (element, done) {
+    test("View lookup", function(element, done) {
       var child = createViewElement("test:child1")
       child.dataset.action = "test:test"
       element.appendChild(child)
@@ -203,12 +203,14 @@ describe("View", function () {
           child1: uiview.Child({autoselect: true, Constructor: View})
         },
         actions: {
-          test: new uiview.Action({type: "click", lookup: "child1", handler: function (e, arg1) {
-            assert.instanceOf(arg1, View)
-            assert.equal(this.child1, arg1)
-            assert.equal(child, arg1.element)
-            done()
-          }})
+          test: new uiview.Action({
+            type: "click", lookup: "child1", handler: function(e, arg1) {
+              assert.instanceOf(arg1, View)
+              assert.equal(this.child1, arg1)
+              assert.equal(child, arg1.element)
+              done()
+            }
+          })
         },
         prototype: {
           viewName: "test"
@@ -218,9 +220,9 @@ describe("View", function () {
     })
   })
 
-  describe("dataset", function () {
-    describe("no default", function () {
-      test("boolean", function (element, done) {
+  describe("dataset", function() {
+    describe("no default", function() {
+      test("boolean", function(element, done) {
         var view = new (View.extend({
           dataset: {
             boolean: new uidata.Boolean()
@@ -230,7 +232,7 @@ describe("View", function () {
         assert.isFalse(element.hasAttribute("data-boolean"))
         done()
       })
-      test("string", function (element, done) {
+      test("string", function(element, done) {
         var view = new (View.extend({
           dataset: {
             string: new uidata.String()
@@ -241,7 +243,7 @@ describe("View", function () {
         assert.isNull(element.getAttribute("data-string"))
         done()
       })
-      test("number", function (element, done) {
+      test("number", function(element, done) {
         var view = new (View.extend({
           dataset: {
             number: new uidata.Number()
@@ -252,7 +254,7 @@ describe("View", function () {
         assert.isNull(element.getAttribute("data-number"))
         done()
       })
-      test("float", function (element, done) {
+      test("float", function(element, done) {
         var view = new (View.extend({
           dataset: {
             float: new uidata.Float()
@@ -263,7 +265,7 @@ describe("View", function () {
         assert.isNull(element.getAttribute("data-float"))
         done()
       })
-      test("json", function (element, done) {
+      test("json", function(element, done) {
         var view = new (View.extend({
           dataset: {
             json: new uidata.JSON()
@@ -276,8 +278,8 @@ describe("View", function () {
       })
     })
 
-    describe("default", function () {
-      test("boolean", function (element, done) {
+    describe("default", function() {
+      test("boolean", function(element, done) {
         var view = new (View.extend({
           dataset: {
             boolean: false
@@ -287,7 +289,7 @@ describe("View", function () {
         assert.isTrue(element.hasAttribute("data-boolean"))
         done()
       })
-      test("string", function (element, done) {
+      test("string", function(element, done) {
         var view = new (View.extend({
           dataset: {
             string: "test"
@@ -298,7 +300,7 @@ describe("View", function () {
         assert.equal(element.getAttribute("data-string"), "test")
         done()
       })
-      test("number", function (element, done) {
+      test("number", function(element, done) {
         var view = new (View.extend({
           dataset: {
             number: 1
@@ -309,7 +311,7 @@ describe("View", function () {
         assert.equal(element.getAttribute("data-number"), 1)
         done()
       })
-      test("float", function (element, done) {
+      test("float", function(element, done) {
         var view = new (View.extend({
           dataset: {
             float: 1.1
@@ -320,7 +322,7 @@ describe("View", function () {
         assert.equal(element.getAttribute("data-float"), 1.1)
         done()
       })
-      test("json", function (element, done) {
+      test("json", function(element, done) {
         var data = {hey: "ho"}
         var expectation = JSON.stringify(data)
         var view = new (View.extend({
@@ -336,8 +338,8 @@ describe("View", function () {
     })
   })
 
-  describe("children", function () {
-    test("bare bone example", function (element, done) {
+  describe("children", function() {
+    test("bare bone example", function(element, done) {
       var child = createViewElement("test:child")
       element.appendChild(child)
       var el = new (View.extend({
@@ -351,7 +353,7 @@ describe("View", function () {
       assert.equal(el.findChild("child"), child)
       done()
     })
-    test("nonexistent child", function (element, done) {
+    test("nonexistent child", function(element, done) {
       var el = new (View.extend({
         children: {
           child: new uiview.Child()
@@ -364,7 +366,7 @@ describe("View", function () {
       assert.isNull(el.findChild("asdqwe"))
       done()
     })
-    test("name override", function (element, done) {
+    test("name override", function(element, done) {
       var child = createViewElement("test:other-child")
       element.appendChild(child)
       var el = new (View.extend({
@@ -378,7 +380,7 @@ describe("View", function () {
       assert.equal(el.findChild("child"), child)
       done()
     })
-    test("multiple child", function (element, done) {
+    test("multiple child", function(element, done) {
       var child1 = createViewElement("test:child")
       var child2 = createViewElement("test:child")
       element.appendChild(child1)
@@ -399,7 +401,7 @@ describe("View", function () {
       assert.equal(el.findChild("child")[1], child2)
       done()
     })
-    test("with constructor", function (element, done) {
+    test("with constructor", function(element, done) {
       var child = createViewElement("test:child")
       element.appendChild(child)
       var ChildElement = View.extend({})
@@ -415,7 +417,7 @@ describe("View", function () {
       assert.equal(el.findChild("child").element, child)
       done()
     })
-    it("nested children", function () {
+    it("nested children", function() {
       var el1 = createViewElement("test")
       var el2 = createViewElement("test")
       var el1child = createViewElement("test:child")
@@ -439,7 +441,7 @@ describe("View", function () {
       assert.lengthOf(children, 1)
       assert.equal(children[0], el1child)
     })
-    test("find element", function (element, done) {
+    test("find element", function(element, done) {
       var view = new (View.extend({
         prototype: {
           viewName: "test"
@@ -451,9 +453,9 @@ describe("View", function () {
     })
   })
 
-  describe("modifiers", function () {
-    describe("switch type", function () {
-      test("no default", function (element, done) {
+  describe("modifiers", function() {
+    describe("switch type", function() {
+      test("no default", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(null, "on", "off")
@@ -464,7 +466,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("default to a defined value", function (element, done) {
+      test("default to a defined value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(true, "on", "off")
@@ -475,7 +477,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("default to an invalid value", function (element, done) {
+      test("default to an invalid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(false, "on", "")
@@ -486,7 +488,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("setting to a defined value", function (element, done) {
+      test("setting to a defined value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(null, "on", "off")
@@ -500,7 +502,7 @@ describe("View", function () {
         assert.isTrue(element.classList.contains("off"))
         done()
       })
-      test("setting to an invalid value", function (element, done) {
+      test("setting to an invalid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(null, "", "")
@@ -516,7 +518,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("remove valid value", function (element, done) {
+      test("remove valid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(true, "on", "off")
@@ -531,7 +533,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("remove invalid value", function (element, done) {
+      test("remove invalid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(null, "", "")
@@ -548,8 +550,8 @@ describe("View", function () {
       })
     })
 
-    describe("enum type", function () {
-      test("no default", function (element, done) {
+    describe("enum type", function() {
+      test("no default", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier(null, ["on", "off"])
@@ -560,7 +562,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("default to a defined value", function (element, done) {
+      test("default to a defined value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier("on", ["on", "off"])
@@ -571,7 +573,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("default to an invalid value", function (element, done) {
+      test("default to an invalid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier("off", ["on", ""])
@@ -582,7 +584,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("setting to a defined value", function (element, done) {
+      test("setting to a defined value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier(null, ["on", "off"])
@@ -598,7 +600,7 @@ describe("View", function () {
         assert.isTrue(element.classList.contains("off"))
         done()
       })
-      test("setting to an invalid value", function (element, done) {
+      test("setting to an invalid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier(null, ["", ""])
@@ -610,7 +612,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("remove valid value", function (element, done) {
+      test("remove valid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier("on", ["on", "off"])
@@ -625,7 +627,7 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("remove invalid value", function (element, done) {
+      test("remove invalid value", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.EnumModifier(null, ["", ""])
@@ -640,18 +642,18 @@ describe("View", function () {
         assert.isFalse(element.classList.contains("off"))
         done()
       })
-      test("animation delay", function (element, done) {
+      test("animation delay", function(element, done) {
         var view = new (View.extend({
           modifiers: {
             test: new uiview.SwitchModifier(false, "on", "off", 500)
           }
         }))(element)
-        view.setModifier("test", true).then(function () {
+        view.setModifier("test", true).then(function() {
           assert.isTrue(element.classList.contains("on"))
           assert.isFalse(element.classList.contains("off"))
-        }).then(function () {
+        }).then(function() {
           return view.removeModifier("test")
-        }).then(function () {
+        }).then(function() {
           assert.isNull(view.getModifier("test"))
           assert.isFalse(element.classList.contains("on"))
           assert.isFalse(element.classList.contains("off"))

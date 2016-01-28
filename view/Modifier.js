@@ -1,6 +1,6 @@
 module.exports = Modifier
 
-function Modifier (modifInit) {
+function Modifier(modifInit) {
   this.type = modifInit.type
   this.default = modifInit.default == null ? null : modifInit.default
   this.values = []
@@ -19,9 +19,9 @@ function Modifier (modifInit) {
   }
 }
 
-Modifier.prototype.reset = function (element, context) {
+Modifier.prototype.reset = function(element, context) {
   var currentValue
-  var hasInitialValue = this.values.some(function (value) {
+  var hasInitialValue = this.values.some(function(value) {
     if (value && element.classList.contains(value)) {
       currentValue = value
       return true
@@ -49,11 +49,11 @@ Modifier.prototype.reset = function (element, context) {
   }
 }
 
-Modifier.prototype.get = function () {
+Modifier.prototype.get = function() {
   return this.value
 }
 
-Modifier.prototype.set = function (value, element, context) {
+Modifier.prototype.set = function(value, element, context) {
   context = context || element
 
   var previousValue = this.value
@@ -87,7 +87,7 @@ Modifier.prototype.set = function (value, element, context) {
   return callOnChange(this, context, previousValue, newValue)
 }
 
-Modifier.prototype.remove = function (element, context) {
+Modifier.prototype.remove = function(element, context) {
   context = context || element
   if (this.value == null) {
     return Promise.resolve()
@@ -117,8 +117,8 @@ Modifier.prototype.remove = function (element, context) {
   return callOnChange(this, context, previousValue, null)
 }
 
-function callOnChange (modifier, context, previousValue, newValue) {
-  return new Promise(function (resolve) {
+function callOnChange(modifier, context, previousValue, newValue) {
+  return new Promise(function(resolve) {
     if (modifier.animationDuration) {
       if (modifier.timerId) {
         clearTimeout(modifier.timerId)
@@ -129,9 +129,9 @@ function callOnChange (modifier, context, previousValue, newValue) {
     else {
       resolve()
     }
-  }).then(function () {
-        if (typeof modifier.onchange == "function") {
-          return modifier.onchange.call(context, previousValue, newValue)
-        }
-      })
+  }).then(function() {
+    if (typeof modifier.onchange == "function") {
+      return modifier.onchange.call(context, previousValue, newValue)
+    }
+  })
 }

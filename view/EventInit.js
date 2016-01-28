@@ -1,6 +1,6 @@
 module.exports = EventInit
 
-function EventInit (event, target, capture, once, handler) {
+function EventInit(event, target, capture, once, handler) {
   if (!(this instanceof EventInit)) {
     switch (arguments.length) {
       case 1:
@@ -36,7 +36,7 @@ function EventInit (event, target, capture, once, handler) {
 
   switch (arguments.length) {
     case 1:
-        event = {type: event}
+      event = {type: event}
       break
     case 2:
       event = {

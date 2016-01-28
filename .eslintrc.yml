@@ -384,8 +384,8 @@ rules:
     camelcase: 1
     # this option enforces minimum and maximum identifier lengths (variable names, property names etc.)
     id-length: [1, {"min": 1, "max": 30}]
-    # disallow dangling underscores in identifiers
-    no-underscore-dangle: 1
+    # allow dangling underscores in identifiers
+    no-underscore-dangle: 0
     # require a capital letter for constructors
     new-cap: [1, {
         "newIsCap": true,

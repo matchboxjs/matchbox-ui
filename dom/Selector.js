@@ -2,7 +2,7 @@ module.exports = Selector
 
 Selector.DEFAULT_NEST_SEPARATOR = ":"
 
-function Selector (selector) {
+function Selector(selector) {
   selector = selector || {}
   this.attribute = selector.attribute || ""
   this.value = selector.value || null
@@ -19,7 +19,7 @@ function Selector (selector) {
   this.matcher = selector.matcher || null
 }
 
-function parentFilter (unMatchSelector, realParent) {
+function parentFilter(unMatchSelector, realParent) {
   return function isUnwantedChild(el) {
     var parent = el.parentNode
     while (parent && parent != realParent) {
@@ -32,45 +32,45 @@ function parentFilter (unMatchSelector, realParent) {
   }
 }
 
-Selector.prototype.clone = function () {
+Selector.prototype.clone = function() {
   return new Selector(this)
 }
 
-Selector.prototype.combine = function (selector) {
+Selector.prototype.combine = function(selector) {
   var s = this.clone()
   s.extra += selector.toString()
   return s
 }
 
-Selector.prototype.equal = function (value) {
+Selector.prototype.equal = function(value) {
   var s = this.clone()
   s.operator = "="
   s.value = value
   return s
 }
 
-Selector.prototype.contains = function (value) {
+Selector.prototype.contains = function(value) {
   var s = this.clone()
   s.operator = "~="
   s.value = value
   return s
 }
 
-Selector.prototype.prefix = function (pre, separator) {
+Selector.prototype.prefix = function(pre, separator) {
   var s = this.clone()
   var sep = s.value ? separator || Selector.DEFAULT_NEST_SEPARATOR : ""
   s.value = pre + sep + s.value
   return s
 }
 
-Selector.prototype.nest = function (post, separator) {
+Selector.prototype.nest = function(post, separator) {
   var s = this.clone()
   var sep = s.value ? separator || Selector.DEFAULT_NEST_SEPARATOR : ""
   s.value += sep + post
   return s
 }
 
-Selector.prototype.from = function (element, except) {
+Selector.prototype.from = function(element, except) {
   var s = this.clone()
   s.element = element
   if (except) {
@@ -79,7 +79,7 @@ Selector.prototype.from = function (element, except) {
   return s
 }
 
-Selector.prototype.select = function (element, transform) {
+Selector.prototype.select = function(element, transform) {
   var result = element.querySelector(this.toString())
   if (result && this.unwantedParentSelector && this.element) {
     var isWantedChild = parentFilter(this.unwantedParentSelector, this.element)
@@ -92,7 +92,7 @@ Selector.prototype.select = function (element, transform) {
       : null
 }
 
-Selector.prototype.selectAll = function (element, transform) {
+Selector.prototype.selectAll = function(element, transform) {
   var result = element.querySelectorAll(this.toString())
   if (this.unwantedParentSelector && this.element) {
     result = [].filter.call(result, parentFilter(this.unwantedParentSelector, this.element))
@@ -100,40 +100,36 @@ Selector.prototype.selectAll = function (element, transform) {
   return transform ? [].map.call(result, transform) : [].slice.call(result)
 }
 
-Selector.prototype.node = function (transform) {
+Selector.prototype.node = function(transform) {
   return this.select(this.element, transform)
 }
 
-Selector.prototype.nodeList = function (transform) {
+Selector.prototype.nodeList = function(transform) {
   return this.selectAll(this.element, transform)
 }
 
-Selector.prototype.construct = function () {
+Selector.prototype.construct = function() {
   var Constructor = this.Constructor
-  var instantiate = this.instantiate || function (element) {
+  var instantiate = this.instantiate || function(element) {
     return new Constructor(element)
   }
   if (this.multiple) {
     return this.nodeList().map(instantiate)
   }
-  else {
-    return this.node(instantiate)
-  }
+  return this.node(instantiate)
 }
 
-Selector.prototype.find = function () {
+Selector.prototype.find = function() {
   if (this.Constructor || this.instantiate) {
     return this.construct()
   }
   if (this.multiple) {
     return this.nodeList()
   }
-  else {
-    return this.node()
-  }
+  return this.node()
 }
 
-Selector.prototype.toString = function () {
+Selector.prototype.toString = function() {
   var string = ""
   var value = this.value
   var attribute = this.attribute
@@ -141,7 +137,7 @@ Selector.prototype.toString = function () {
 
   switch (attribute) {
     case "id":
-        string = "#" + value
+      string = "#" + value
       break
     case "class":
       string = "." + value
@@ -151,8 +147,8 @@ Selector.prototype.toString = function () {
       break
     default:
       value = value === "" || value === true || value === false || value == null
-        ? ""
-        : '"' + value + '"'
+          ? ""
+          : '"' + value + '"'
       var operator = value ? this.operator || "=" : ""
       string = "[" + attribute + operator + value + "]"
   }
