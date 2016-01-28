@@ -26,14 +26,12 @@
   "homepage": "https://github.com/matchboxjs/matchbox-ui#readme",
   "dependencies": {
     "backyard": "^0.1.0",
-    "matchbox-dom": "^0.6.4",
     "offspring": "^0.4.0",
     "stations": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.4.0",
     "electron-mocha": "^0.8.0",
-    "electron-prebuilt": "^0.36.5",
-    "mocha": "^2.3.3"
+    "electron-prebuilt": "^0.36.5"
   }
 }
