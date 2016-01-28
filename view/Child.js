@@ -1,5 +1,5 @@
 var inherit = require("backyard/function/inherit")
-var Selector = require("matchbox-dom/Selector")
+var Selector = require("../dom/Selector")
 
 module.exports = Child
 

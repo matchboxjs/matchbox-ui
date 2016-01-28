@@ -1,6 +1,6 @@
 var inherit = require("backyard/function/inherit")
 var include = require("backyard/function/include")
-var Selector = require("matchbox-dom/Selector")
+var Selector = require("../dom/Selector")
 var Event = require("./Event")
 var Child = require("./Child")
 

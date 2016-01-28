@@ -1,5 +1,5 @@
-var delegate = require("matchbox-dom/event/delegate")
-var Selector = require("matchbox-dom/Selector")
+var delegate = require("../dom/event/delegate")
+var Selector = require("../dom/Selector")
 var Child = require("./Child")
 
 module.exports = Event
