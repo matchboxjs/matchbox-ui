@@ -1,4 +1,4 @@
-var forIn = require("matchbox-util/object/in")
+var forIn = require("backyard/object/in")
 
 module.exports = Slice
 

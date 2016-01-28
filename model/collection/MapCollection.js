@@ -1,5 +1,5 @@
-var include = require("matchbox-factory/include")
-var forIn = require("matchbox-util/object/in")
+var include = require("backyard/function/include")
+var forIn = require("backyard/object/in")
 var Collection = require("./Collection")
 
 module.exports = MapCollection

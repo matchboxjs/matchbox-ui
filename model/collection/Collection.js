@@ -1,5 +1,5 @@
-var include = require("matchbox-factory/include")
-var Radio = require("matchbox-radio")
+var include = require("backyard/function/include")
+var Radio = require("stations")
 
 module.exports = Collection
 

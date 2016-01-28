@@ -1,4 +1,4 @@
-var include = require("matchbox-factory/include")
+var include = require("backyard/function/include")
 var Collection = require("./Collection")
 
 module.exports = ArrayCollection
