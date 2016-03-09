@@ -1,0 +1,39 @@
+{
+  "name": "matchbox-ui",
+  "root": "",
+  "dirs": {
+    "generators": "generators",
+    "ui": "ui",
+    "polyfills": "polyfills"
+  },
+  "init": {
+    "ui": [
+      "assets",
+        "assets/fonts",
+        "assets/icons",
+        "assets/images",
+        "assets/sprites",
+      "elements",
+      "env",
+        "env/config",
+        "env/functions",
+        "env/mixins",
+        "env/variables",
+      "overrides",
+      "pages",
+      "reset",
+      "screens"
+    ]
+  },
+  "generators": {
+    "element": {
+      "root": "ui",
+      "dir": "elements",
+      "naming": "target"
+    },
+    "page": {
+      "root": "ui",
+      "dir": "pages"
+    }
+  }
+}
