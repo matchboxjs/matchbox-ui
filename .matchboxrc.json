@@ -1,25 +1,26 @@
 {
   "name": "matchbox-ui",
   "root": "",
-  "dirs": {
+  "namespace": {
     "generators": "generators",
     "ui": "ui",
     "polyfills": "polyfills"
   },
-  "init": {
+  "dirs": {
     "ui": [
       "assets",
-        "assets/fonts",
-        "assets/icons",
-        "assets/images",
-        "assets/sprites",
+      "assets/fonts",
+      "assets/icons",
+      "assets/images",
+      "assets/sprites",
       "elements",
       "env",
-        "env/config",
-        "env/functions",
-        "env/mixins",
-        "env/variables",
+      "env/config",
+      "env/functions",
+      "env/mixins",
+      "env/variables",
       "overrides",
+      "layout",
       "pages",
       "reset",
       "screens"
@@ -27,13 +28,20 @@
   },
   "generators": {
     "element": {
-      "root": "ui",
+      "namespace": "ui",
       "dir": "elements",
-      "naming": "target"
+      "naming": "keep"
     },
     "page": {
-      "root": "ui",
-      "dir": "pages"
+      "namespace": "ui",
+      "dir": "pages",
+      "naming": "keep",
+      "template": true
+    },
+    "layout": {
+      "namespace": "ui",
+      "dir": "layout",
+      "naming": "keep"
     }
   }
 }
