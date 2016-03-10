@@ -35,8 +35,7 @@
     "page": {
       "namespace": "ui",
       "dir": "pages",
-      "naming": "keep",
-      "template": true
+      "naming": "keep"
     },
     "layout": {
       "namespace": "ui",
