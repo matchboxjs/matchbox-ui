@@ -22,6 +22,7 @@
       "overrides",
       "layout",
       "pages",
+      "themes",
       "reset",
       "screens"
     ]
@@ -30,7 +31,19 @@
     "element": {
       "namespace": "ui",
       "dir": "elements",
-      "naming": "keep"
+      "naming": "keep",
+      "dirs": [
+        "modifiers",
+        "contexts",
+        "children",
+        "themes"
+      ]
+    },
+    "modifier": {
+      "namespace": "ui",
+      "dir": "elements",
+      "nest": "modifiers",
+      "naming": "rename"
     },
     "page": {
       "namespace": "ui",
