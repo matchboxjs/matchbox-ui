@@ -42,7 +42,6 @@
     "modifier": {
       "namespace": "ui",
       "dir": "elements",
-      "nest": "modifiers",
       "naming": "rename"
     },
     "page": {
